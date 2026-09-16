@@ -17,7 +17,8 @@ export default function ReadyHubPage() {
   const router = useRouter()
   const { state, app, brand, modules, progress, minutesLeft, nextModule, dispatch } = useApplication()
   const gated = state.dev.returning && !state.dev.returningVerified
-  const name = app.firstName?.trim() || "there"
+  const firstName = app.firstName?.trim()
+  const name = firstName ? `, ${firstName}` : ""
   const onVerified = useCallback(() => dispatch({ type: "SET_DEV", dev: { returningVerified: true } }), [dispatch])
 
   if (gated) {
@@ -25,7 +26,7 @@ export default function ReadyHubPage() {
       <div className="flex flex-col gap-6 px-5 pb-8 pt-6">
         <div className="flex flex-col gap-3">
           <Eyebrow>Welcome back</Eyebrow>
-          <Title>Good to see you, {name}.</Title>
+          <Title>Good to see you{name}.</Title>
           <Lede>
             You&apos;ve done {progress.done} of {progress.total} steps. Confirm it&apos;s you and we&apos;ll pick up
             from there.
@@ -48,10 +49,10 @@ export default function ReadyHubPage() {
           <Eyebrow>Getting ready</Eyebrow>
           <Title>
             {allDone
-              ? `All done, ${name}.`
+              ? `All done${name}.`
               : progress.done === 0
-                ? `Let's get you ready, ${name}.`
-                : `Nice one, ${name}. ${progress.total - progress.done} to go.`}
+                ? `Let's get you ready${name}.`
+                : `Nice one${name}. ${progress.total - progress.done} to go.`}
           </Title>
           <Lede>
             {allDone
