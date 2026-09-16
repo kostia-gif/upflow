@@ -1,9 +1,8 @@
 "use client"
 
-import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, CalendarClock, Play } from "lucide-react"
-import { useCallback, useState } from "react"
+import { ArrowLeft, BellRing, CalendarClock } from "lucide-react"
+import { useCallback } from "react"
 import { CodeEntry } from "@/components/apply/code-entry"
 import { ModuleRow } from "@/components/apply/module-row"
 import { Eyebrow, Lede, PrimaryButton, TextLink, Title } from "@/components/apply/primitives"
@@ -16,13 +15,12 @@ import { formatDayMonth } from "@/lib/format"
 
 export default function ReadyHubPage() {
   const router = useRouter()
-  const { state, app, brand, rep, modules, progress, minutesLeft, totalSteps, applySteps, nextModule, dispatch } =
+  const { state, app, brand, modules, progress, minutesLeft, totalSteps, applySteps, nextModule, dispatch } =
     useApplication()
   const gated = state.dev.returning && !state.dev.returningVerified
   const firstName = app.firstName?.trim()
   const name = firstName ? `, ${firstName}` : ""
   const onVerified = useCallback(() => dispatch({ type: "SET_DEV", dev: { returningVerified: true } }), [dispatch])
-  const [playing, setPlaying] = useState(false)
 
   if (gated) {
     return (
@@ -56,7 +54,6 @@ export default function ReadyHubPage() {
   const allDone = othersDone && isComplete(app, "sign")
   const next = nextModule(state.lastModule)
   const nextIsSign = next === "sign"
-  const justArrived = progress.done === 0
 
   return (
     <div className="flex flex-col">
@@ -77,20 +74,18 @@ export default function ReadyHubPage() {
         </div>
 
         <div className="flex flex-col gap-3">
-          <Eyebrow>{justArrived ? "You're in — now let's get you ready" : "Getting ready"}</Eyebrow>
+          <Eyebrow>{allDone ? "All steps" : "Where you're up to"}</Eyebrow>
           <Title>
             {allDone
               ? `All done${name}.`
-              : justArrived
-                ? `Nice one${name}. Your place is on hold.`
+              : progress.done === 0
+                ? `Your steps${name}.`
                 : `Nice one${name}. ${progress.total - progress.done} to go.`}
           </Title>
           <Lede>
             {allDone
               ? `We're checking the last bits. ${brand.shortName} will confirm your enrolment by text.`
-              : justArrived
-                ? `We've texted a confirmation to ${app.mobile || "your mobile"}. A few quick steps left, ${minutesLabel(minutesLeft).toLowerCase()} — do them now, or stop anytime and we'll save your place.`
-                : `${progress.done} of ${progress.total} done · ${minutesLabel(minutesLeft).toLowerCase()}. Stop whenever — we save as you go.`}
+              : `${progress.done} of ${progress.total} done · ${minutesLabel(minutesLeft).toLowerCase()}. Stop whenever — we save as you go.`}
           </Lede>
         </div>
 
@@ -103,41 +98,17 @@ export default function ReadyHubPage() {
           </div>
         )}
 
-        <RepCard
-          intro={
-            justArrived && rep
-              ? app.repAssigned === "assigned"
-                ? `${rep.name} is looking after you`
-                : `${rep.name} has your application`
-              : undefined
-          }
-        />
-
-        {justArrived && (
-          <button
-            type="button"
-            onClick={() => setPlaying(true)}
-            className="group relative aspect-video w-full overflow-hidden rounded-2xl bg-foreground text-left"
-            aria-label={`Play video: ${brand.tutorVideoCaption}`}
-          >
-            <Image
-              src={brand.tutorVideoPoster}
-              alt=""
-              fill
-              sizes="480px"
-              className={playing ? "object-cover opacity-60" : "object-cover transition-transform group-hover:scale-[1.02]"}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/10 to-transparent" />
-            <div className="absolute inset-x-4 bottom-4 flex items-center gap-3 text-background">
-              <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-background text-foreground">
-                <Play className="ml-0.5 size-5" aria-hidden />
-              </span>
-              <span className="text-sm font-medium leading-snug">
-                {playing ? "Video playback is mocked in this prototype" : brand.tutorVideoCaption}
-              </span>
-            </div>
-          </button>
+        {app.remindLabel && !allDone && (
+          <div className="flex items-start gap-3 rounded-2xl bg-muted p-3 text-sm leading-relaxed">
+            <BellRing className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden />
+            <p>
+              Reminder set for <strong>{app.remindLabel}</strong> by{" "}
+              {app.remindChannel === "whatsapp" ? "WhatsApp" : "text"}.
+            </p>
+          </div>
         )}
+
+        <RepCard />
 
         <ul className="flex flex-col gap-2">
           {modules.map((m) => (
@@ -167,16 +138,12 @@ export default function ReadyHubPage() {
           <PrimaryButton onClick={() => router.push("/apply/done")}>See what happens next</PrimaryButton>
         ) : (
           <PrimaryButton onClick={() => next && router.push(`/apply/ready/${next}`)}>
-            {nextIsSign
-              ? "Review and sign"
-              : justArrived
-                ? `Finish & confirm my place · ${Math.ceil(minutesLeft)} min`
-                : "Next step"}
+            {nextIsSign ? "Review and sign" : progress.done === 0 ? "Start the first step" : "Pick up where I left off"}
           </PrimaryButton>
         )}
         {!allDone && (
           <div className="flex justify-center">
-            <TextLink href="/apply/finish-later">Finish later</TextLink>
+            <TextLink href="/apply/finish-later">Pause and remind me</TextLink>
           </div>
         )}
       </div>

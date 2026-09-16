@@ -40,7 +40,7 @@ const problems: { Icon: ComponentType<{ className?: string }>; title: string; bo
   {
     Icon: Copy,
     title: "Nothing told us before counts for anything",
-    body: "A sales call, an enquiry, a prior year's application — all ignored. People re-type their own name, course and story from scratch.",
+    body: "A call with a course advisor, an enquiry, a prior year's application — all ignored. People re-type their own name, course and story from scratch.",
   },
   {
     Icon: Compass,
@@ -76,19 +76,19 @@ const comparison = [
     after: "One link that already knows your name, course and intake",
   },
   {
-    label: "Sales and the application",
-    before: "Two separate worlds — the sales conversation ends, then the form starts cold",
-    after: "One conversation throughout — enquiry, sales chat and application stay in the same thread, back and forth, right through to enrolment",
+    label: "The course advisor and the application",
+    before: "Two separate worlds — the advisor conversation ends, then the form starts cold",
+    after: "One conversation throughout — enquiry, advisor chat and application stay in the same thread, back and forth, right through to enrolment",
   },
   {
     label: "What you've told us before",
-    before: "Typed again, even the bits from the sales call on Tuesday",
+    before: "Typed again, even the bits from the advisor call on Tuesday",
     after: "Everything you told us once stays told",
   },
   {
     label: "Getting ready to enrol",
     before: "Forty questions, no idea how much is left",
-    after: "About ten minutes, one thing at a time, always know what's next",
+    after: "One honest time estimate up front, one thing at a time, always know what's next",
   },
   {
     label: "Proving who you are",
@@ -194,10 +194,11 @@ export default function IntroPage() {
           </div>
           <div className="flex flex-col gap-3">
             <h2 className="font-sans text-2xl font-semibold tracking-tight text-foreground">
-              Sales isn&apos;t handed off — it&apos;s carried through
+              The course advisor isn&apos;t handed off — they&apos;re carried through
             </h2>
             <p className="max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground">
-              Today, a sales conversation ends and the application starts cold, as if it never happened. In this
+              Today, a conversation with a course advisor ends and the application starts cold, as if it never
+              happened. In this
               model the two are one continuous thread: the same conversation that opens with an enquiry can carry
               straight through advice, back-and-forth questions, the application itself and everything after —
               nothing gets re-explained, and nobody has to start again.

@@ -1,7 +1,8 @@
 "use client"
 
 import Image from "next/image"
-import { CalendarPlus, CheckCircle2, MapPin, Shirt } from "lucide-react"
+import { CalendarPlus, CheckCircle2, MapPin, Play, Shirt } from "lucide-react"
+import { useState } from "react"
 import { Eyebrow, Lede, PrimaryButton, TextLink, Title } from "@/components/apply/primitives"
 import { RepCard } from "@/components/apply/rep-card"
 import { StatusTracker } from "@/components/apply/status-tracker"
@@ -11,6 +12,7 @@ import { moduleMeta } from "@/lib/config/modules"
 
 export default function DonePage() {
   const { app, brand, course, modules } = useApplication()
+  const [playing, setPlaying] = useState(false)
   const campus = course.campuses.find((c) => c.id === app.campusId)
   const intake = course.intakes.find((i) => i.id === app.intakeId)
   const pending = modules.filter(
@@ -28,9 +30,30 @@ export default function DonePage() {
 
   return (
     <div className="flex flex-col gap-6 px-5 pb-10 pt-6">
-      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-3xl">
-        <Image src={brand.tutorVideoPoster} alt={`${campus?.name ?? brand.shortName} campus`} fill sizes="480px" className="object-cover" priority />
-      </div>
+      <button
+        type="button"
+        onClick={() => setPlaying(true)}
+        className="group relative aspect-[4/3] w-full overflow-hidden rounded-3xl bg-foreground text-left"
+        aria-label={`Play video: ${brand.tutorVideoCaption}`}
+      >
+        <Image
+          src={brand.tutorVideoPoster}
+          alt=""
+          fill
+          sizes="480px"
+          priority
+          className={playing ? "object-cover opacity-60" : "object-cover transition-transform group-hover:scale-[1.02]"}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/10 to-transparent" />
+        <div className="absolute inset-x-4 bottom-4 flex items-center gap-3 text-background">
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-background text-foreground">
+            <Play className="ml-0.5 size-5" aria-hidden />
+          </span>
+          <span className="text-sm font-medium leading-snug">
+            {playing ? "Video playback is mocked in this prototype" : brand.tutorVideoCaption}
+          </span>
+        </div>
+      </button>
       <div className="flex flex-col gap-3">
         <Eyebrow>{signed ? "You're enrolled" : "Nearly there"}</Eyebrow>
         <Title>

@@ -23,8 +23,8 @@ export function RepCard({ className, intro }: { className?: string; intro?: stri
   const line =
     intro ??
     (app.repAssigned === "assigned"
-      ? `${rep.name} is your ${rep.role.toLowerCase()}`
-      : `You spoke to ${rep.name}`)
+      ? `${rep.name} is your ${rep.role.toLowerCase()} — ask them anything`
+      : `You've already chatted with ${rep.name} — they've got your details`)
 
   return (
     <>

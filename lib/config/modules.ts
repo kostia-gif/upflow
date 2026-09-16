@@ -48,10 +48,13 @@ export const moduleMeta: Record<ModuleId, ModuleMeta> = {
   },
   money: {
     id: "money",
-    title: "Money",
-    description: { NZ: "Your StudyLink steps.", AU: "FEE-HELP and your USI." },
-    minutes: 1,
-    timeLabel: "1 min",
+    title: "Paying for it",
+    description: {
+      NZ: "You're in and you're verified — here's how people usually pay. Nothing to decide or pay today.",
+      AU: "You're in and you're verified — here's how people usually pay. Nothing to decide or pay today.",
+    },
+    minutes: 1.5,
+    timeLabel: "2 min",
   },
   "support-person": {
     id: "support-person",
@@ -136,6 +139,13 @@ export function modulesFor(course: CourseConfig, country: Country): ModuleId[] {
     }
   }
   return result
+}
+
+/** Start, You and Am I in? together take about three minutes. */
+export const APPLY_MINUTES = 3
+
+export function totalMinutesFor(course: CourseConfig, country: Country) {
+  return Math.ceil(APPLY_MINUTES + modulesFor(course, country).reduce((sum, m) => sum + moduleMeta[m].minutes, 0))
 }
 
 export function minutesLabel(minutes: number) {

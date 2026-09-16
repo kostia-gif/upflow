@@ -11,7 +11,14 @@ import { cn } from "@/lib/utils"
 
 export default function AmIInPage() {
   const router = useRouter()
-  const { app, brand, course, rep, totalSteps, dispatch } = useApplication()
+  const { app, brand, course, rep, totalSteps, nextModule, dispatch } = useApplication()
+
+  function keepGoing() {
+    dispatch({ type: "SUBMIT" })
+    dispatch({ type: "ASSIGN_ADVISOR" })
+    const first = nextModule()
+    router.push(first ? `/apply/ready/${first}` : "/apply/ready")
+  }
 
   const countryName = brand.country === "AU" ? "Australian" : "New Zealand"
   const answered = course.eligibilityQuestions.every((q) => app.eligibility[q.id]) && !!app.residency
@@ -33,9 +40,9 @@ export default function AmIInPage() {
       totalSteps={totalSteps}
       title="Am I in?"
       lede="Quick honesty check. Most people are — and if you're not quite there yet, we'll show you what fits."
-      cta={international ? undefined : "Next"}
+      cta={international ? undefined : answered && !hardFail ? "Yes, I'm in — keep going" : "Next"}
       ctaDisabled={!answered || !!hardFail}
-      onCta={() => router.push("/apply/money")}
+      onCta={keepGoing}
     >
       <div className="flex flex-col gap-6">
         {course.eligibilityQuestions.map((q) => (
@@ -97,8 +104,13 @@ export default function AmIInPage() {
               )}
               <div className="flex flex-col gap-2">
                 <p className="text-sm font-semibold">
-                  {hardFail ? "Not this one, not yet." : `Looks good. You meet the entry requirements for ${course.shortTitle}.`}
+                  {hardFail ? "Not this one, not yet." : `You're in. You meet the entry requirements for ${course.shortTitle}.`}
                 </p>
+                {!hardFail && (
+                  <p className="text-sm leading-relaxed text-foreground/80">
+                    Hit keep going and we&apos;ll hold your place for {course.holdDays} days while you finish the rest.
+                  </p>
+                )}
                 {hardFail?.q.failNote && <p className="text-sm leading-relaxed">{hardFail.q.failNote}</p>}
                 {softs.map((s) => (
                   <p key={s.q.id} className="text-sm leading-relaxed text-foreground/80">

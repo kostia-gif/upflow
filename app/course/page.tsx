@@ -8,6 +8,7 @@ import { Segmented } from "@/components/apply/segmented"
 import { Eyebrow } from "@/components/apply/primitives"
 import { useApplication } from "@/lib/application/context"
 import { defaultCourseFor } from "@/lib/config/courses"
+import { totalMinutesFor } from "@/lib/config/modules"
 import { getRep } from "@/lib/config/reps"
 import { cn, frameClass } from "@/lib/utils"
 
@@ -143,7 +144,8 @@ export default function CoursePage() {
           href={applyHref}
           className="flex h-14 items-center justify-center gap-2 rounded-2xl bg-brand text-base font-semibold text-brand-foreground shadow-[0_8px_24px_-12px_var(--brand)] transition-transform active:scale-[0.98]"
         >
-          Apply — about 3 minutes <ArrowRight className="size-5" aria-hidden />
+                Apply — about {totalMinutesFor(course, brand.country)} minutes, all in one go{" "}
+                <ArrowRight className="size-5" aria-hidden />
         </Link>
         <p className="text-center text-xs text-muted-foreground">
           {campus.placesLeft === 0

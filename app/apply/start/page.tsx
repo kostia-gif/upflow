@@ -9,9 +9,11 @@ import { useApplication } from "@/lib/application/context"
 
 export default function StartPage() {
   const router = useRouter()
-  const { app, brand, course, totalSteps, dispatch } = useApplication()
+  const { app, brand, course, rep, totalSteps, totalMinutes, dispatch } = useApplication()
   const campus = course.campuses.find((c) => c.id === app.campusId)
   const ready = !!app.campusId && !!app.intakeId
+  const spoken = app.repAssigned === "spoken" && !!rep
+  const firstName = app.firstName?.trim()
 
   return (
     <StepFrame
@@ -19,12 +21,21 @@ export default function StartPage() {
       totalSteps={totalSteps}
       back={false}
       title={
-        <>
-          {brand.greeting}. Let&apos;s get you into{" "}
-          <span className="text-brand">{course.shortTitle}</span>.
-        </>
+        spoken && firstName ? (
+          <>
+            Good to see you again, {firstName}. <span className="text-brand">{course.shortTitle}</span> it is.
+          </>
+        ) : (
+          <>
+            {brand.greeting}. Let&apos;s get you into <span className="text-brand">{course.shortTitle}</span>.
+          </>
+        )
       }
-      lede="Three minutes. No documents yet — those come later, one at a time."
+      lede={
+        spoken
+          ? `${rep.name} set this up from your chat — check the details and hit Start. About ${totalMinutes} minutes all in, and we save as you go.`
+          : `About ${totalMinutes} minutes, all in one go. Stop any time — we save as you go and text you a link back.`
+      }
       cta="Start"
       ctaDisabled={!ready}
       onCta={() => router.push("/apply/you")}

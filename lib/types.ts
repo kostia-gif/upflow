@@ -103,4 +103,7 @@ export type Application = {
   modules: Partial<Record<ModuleId, ModuleStatus>>
   moduleData: Partial<Record<ModuleId, Record<string, string>>>
   channel?: "app" | "whatsapp"
+  remindAt?: string
+  remindLabel?: string
+  remindChannel?: "sms" | "whatsapp"
 }

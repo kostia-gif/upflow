@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useMemo, useReducer, useState, type ReactNode } from "react"
 import { getBrand } from "@/lib/config/brands"
 import { defaultCourseFor, getCourse } from "@/lib/config/courses"
-import { moduleMeta } from "@/lib/config/modules"
+import { moduleMeta, totalMinutesFor } from "@/lib/config/modules"
 import { getRep } from "@/lib/config/reps"
 import type { Application, BrandConfig, CourseConfig, ModuleId, Rep } from "@/lib/types"
 import {
@@ -32,6 +32,8 @@ type Ctx = {
   applySteps: number
   /** Total steps across the whole flow: apply steps + every get-ready module. */
   totalSteps: number
+  /** Honest whole-flow estimate: the apply steps plus every module, rounded up. */
+  totalMinutes: number
 }
 
 const ApplicationContext = createContext<Ctx | null>(null)
@@ -68,6 +70,7 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
     const modules = moduleList(app)
     const minutesLeft = modules.filter((m) => !isComplete(app, m)).reduce((sum, m) => sum + moduleMeta[m].minutes, 0)
     const applySteps = 3
+    const totalMinutes = totalMinutesFor(course, brand.country)
     return {
       state,
       app,
@@ -81,6 +84,7 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
       dispatch,
       applySteps,
       totalSteps: applySteps + modules.length,
+      totalMinutes,
     }
   }, [state])
 

@@ -1,29 +1,108 @@
 "use client"
 
-import { ExternalLink } from "lucide-react"
+import { CircleHelp, HandHelping, ThumbsUp } from "lucide-react"
 import { useState } from "react"
 import { OptionCards } from "@/components/apply/option-cards"
-import { PrimaryButton, SecondaryButton } from "@/components/apply/primitives"
+import { PrimaryButton } from "@/components/apply/primitives"
 import { Segmented } from "@/components/apply/segmented"
 import { TextField } from "@/components/apply/text-field"
+import { WhyWeAsk } from "@/components/apply/why-we-ask"
 import { useApplication } from "@/lib/application/context"
-import type { FundingId } from "@/lib/types"
+import { isValidMobile } from "@/lib/format"
+import type { FundingId, MoneyHelp } from "@/lib/types"
 import type { ModuleProps } from "./types"
 
+const fundingFor: Record<MoneyHelp, FundingId | undefined> = { help: "loan", sorted: "self", unsure: undefined }
+
 export function MoneyModule({ onComplete }: ModuleProps) {
-  const { app, brand, course, dispatch } = useApplication()
+  const { app, brand, course, rep, dispatch } = useApplication()
   const au = brand.country === "AU"
+  const scheme = au ? "FEE-HELP" : "Fees Free or StudyLink"
   const funding = app.funding
+  const [stage, setStage] = useState<"help" | "detail">(app.moneyHelp ? "detail" : "help")
   const [plan, setPlan] = useState<string>()
   const [payer, setPayer] = useState("")
   const [tfnLater, setTfnLater] = useState<string>()
+
+  const shareWithParent = app.parentMobile !== undefined
+  const parentOk = !shareWithParent || app.parentMobile === "" || isValidMobile(app.parentMobile ?? "")
+
+  if (stage === "help") {
+    return (
+      <div className="flex flex-col gap-5">
+        <OptionCards
+          label="Want a hand with the money side?"
+          value={app.moneyHelp}
+          onChange={(id) => {
+            const help = id as MoneyHelp
+            dispatch({ type: "SET_FIELDS", fields: { moneyHelp: help, funding: fundingFor[help] } })
+          }}
+          options={[
+            {
+              id: "help",
+              title: `Yes, help me with ${scheme}`,
+              description: au
+                ? "We'll walk you through it. Most students pay nothing upfront."
+                : "We'll check what you qualify for and walk you through it.",
+              icon: HandHelping,
+              tag: "Most students",
+            },
+            { id: "sorted", title: "I'm sorted, thanks", description: "Paying myself, or someone else is.", icon: ThumbsUp },
+            {
+              id: "unsure",
+              title: "Not sure yet",
+              description: `No problem. ${rep ? rep.name : "Your advisor"} can talk it through with you.`,
+              icon: CircleHelp,
+            },
+          ]}
+        />
+
+        <label className="flex items-start gap-3 rounded-2xl border border-border p-4">
+          <input
+            type="checkbox"
+            checked={shareWithParent}
+            onChange={(e) => dispatch({ type: "SET_FIELDS", fields: { parentMobile: e.target.checked ? "" : undefined } })}
+            className="mt-0.5 size-5 shrink-0 rounded border-border accent-brand"
+          />
+          <span className="flex flex-col gap-0.5 text-sm">
+            <span className="font-semibold">Send this to a parent or guardian too</span>
+            <span className="leading-snug text-muted-foreground">Handy if someone else is helping with fees.</span>
+          </span>
+        </label>
+        {shareWithParent && (
+          <TextField
+            label="Their mobile"
+            value={app.parentMobile ?? ""}
+            onChange={(v) => dispatch({ type: "SET_FIELDS", fields: { parentMobile: v } })}
+            type="tel"
+            inputMode="tel"
+            placeholder={au ? "04xx xxx xxx" : "02x xxx xxxx"}
+            helper="Optional. We'll text them a summary, nothing else."
+            validate={(v) => (v.trim().length === 0 || isValidMobile(v) ? null : "That doesn't look like a mobile number")}
+          />
+        )}
+
+        <WhyWeAsk>Your answer only changes what we show you next. You can change your mind at any point.</WhyWeAsk>
+
+        <PrimaryButton
+          disabled={!app.moneyHelp || !parentOk}
+          onClick={() => {
+            if (app.parentMobile === "") dispatch({ type: "SET_FIELDS", fields: { parentMobile: undefined } })
+            setStage("detail")
+          }}
+        >
+          Next
+        </PrimaryButton>
+      </div>
+    )
+  }
 
   if (!funding) {
     return (
       <div className="flex flex-col gap-6">
         <p className="text-sm leading-relaxed text-muted-foreground">
-          You said you weren&apos;t sure yet — totally fine. Pick the closest fit and we&apos;ll show you the one step
-          that matters. You can change it any time.
+          Not sure is totally fine. Pick the closest fit so we can show you the one thing that matters — or skip this
+          and {rep ? rep.name : "your advisor"} will talk it through with you.
         </p>
         <OptionCards
           label="How will you pay"
@@ -36,6 +115,9 @@ export function MoneyModule({ onComplete }: ModuleProps) {
             tag: i === 0 ? "Most students" : undefined,
           }))}
         />
+        <PrimaryButton onClick={() => onComplete("later", { funding: "unsure" })}>
+          Skip — talk it through with {rep ? rep.name : "my advisor"}
+        </PrimaryButton>
       </div>
     )
   }
@@ -48,8 +130,8 @@ export function MoneyModule({ onComplete }: ModuleProps) {
           { t: "Done — nothing upfront", d: "You repay through tax once you earn over the threshold." },
         ]
       : [
-          { t: "Apply on StudyLink", d: "Choose \"Student Loan\" and pick this course. 15 minutes, once." },
-          { t: "StudyLink asks us to confirm", d: "We do that as soon as you're enrolled." },
+          { t: "We send you the StudyLink link", d: "Once your enrolment is confirmed. It's a 15-minute government form, done once." },
+          { t: "StudyLink asks us to confirm", d: "We do that straight away." },
           { t: "Fees paid direct to us", d: "Plus a weekly living-cost payment if you want it." },
         ]
     return (
@@ -67,7 +149,7 @@ export function MoneyModule({ onComplete }: ModuleProps) {
             </li>
           ))}
         </ol>
-        {au ? (
+        {au && (
           <Segmented
             label="Do you have your Tax File Number handy?"
             options={[
@@ -83,27 +165,13 @@ export function MoneyModule({ onComplete }: ModuleProps) {
                 : undefined
             }
           />
-        ) : (
-          <a
-            href="https://www.studylink.govt.nz"
-            target="_blank"
-            rel="noreferrer"
-            className="flex h-12 items-center justify-center gap-2 rounded-xl border-2 border-brand/20 text-sm font-semibold text-brand"
-          >
-            Open StudyLink <ExternalLink className="size-4" aria-hidden />
-          </a>
         )}
         <PrimaryButton
           disabled={au && !tfnLater}
-          onClick={() => onComplete("sent", { funding, tfn: tfnLater ?? "" })}
+          onClick={() => onComplete("sent", { funding, tfn: tfnLater ?? "", studylink: au ? "" : "pending" })}
         >
-          {au ? "Got it, FEE-HELP it is" : "I've applied on StudyLink"}
+          {au ? "Got it, FEE-HELP it is" : "Got it"}
         </PrimaryButton>
-        {!au && (
-          <SecondaryButton onClick={() => onComplete("sent", { funding, studylink: "later" })}>
-            Not yet — remind me tomorrow
-          </SecondaryButton>
-        )}
       </div>
     )
   }

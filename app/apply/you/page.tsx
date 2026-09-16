@@ -12,7 +12,8 @@ import { isValidEmail, isValidMobile } from "@/lib/format"
 
 export default function YouPage() {
   const router = useRouter()
-  const { app, brand, totalSteps, dispatch } = useApplication()
+  const { app, brand, rep, totalSteps, dispatch } = useApplication()
+  const spoken = app.repAssigned === "spoken" && !!rep
   const prefilled = !!(app.firstName && app.lastName && app.mobile && app.email)
   const [stage, setStage] = useState<"details" | "code">(prefilled && !app.mobileVerified ? "code" : "details")
 
@@ -33,11 +34,13 @@ export default function YouPage() {
       <StepFrame
         step={2}
         totalSteps={totalSteps}
-        eyebrow={app.entryPath === "A" ? "Almost there" : undefined}
-        title={app.entryPath === "A" ? `Welcome back, ${app.firstName}.` : "Check your phone."}
+        eyebrow={app.entryPath === "A" ? "Quick check" : undefined}
+        title={app.entryPath === "A" ? `Just confirming it's you, ${app.firstName}.` : "Check your phone."}
         lede={
           app.entryPath === "A"
-            ? "We've kept everything you told us. Just confirm it's you and we'll pick up where you left off."
+            ? spoken
+              ? `${rep.name} kept everything you told them, so there's nothing to re-type. Pop in the code and we'll keep going.`
+              : "We've kept everything you told us. Pop in the code and we'll keep going."
             : "A quick code keeps your application yours. It also lets you come back on any device."
         }
       >
