@@ -35,6 +35,16 @@
   --color-warning-soft: var(--warning-soft);
   --color-info: var(--info);
   --color-info-soft: var(--info-soft);
+  --color-wa-bg: var(--wa-bg);
+  --color-wa-in: var(--wa-in);
+  --color-wa-out: var(--wa-out);
+  --color-wa-header: var(--wa-header);
+  --color-wa-header-foreground: var(--wa-header-foreground);
+  --color-wa-accent: var(--wa-accent);
+  --color-wa-bar: var(--wa-bar);
+  --color-wa-tick: var(--wa-tick);
+  --color-wa-link: var(--wa-link);
+  --color-wa-rep: var(--wa-rep);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -75,6 +85,17 @@
   --info: #2b5fb8;
   --info-soft: #e8effc;
   --radius: 0.75rem;
+  /* WhatsApp look-alike palette, used only by the /whatsapp journey mock. */
+  --wa-bg: #efeae2;
+  --wa-in: #ffffff;
+  --wa-out: #d9fdd3;
+  --wa-header: #008069;
+  --wa-header-foreground: #ffffff;
+  --wa-accent: #00a884;
+  --wa-bar: #f0f2f5;
+  --wa-tick: #53bdeb;
+  --wa-link: #027eb5;
+  --wa-rep: #d3436a;
 }
 
 @layer base {
@@ -96,6 +117,11 @@
 @layer utilities {
   .pb-safe {
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+  .wa-wallpaper {
+    background-color: var(--wa-bg);
+    background-image: radial-gradient(rgba(0, 0, 0, 0.045) 1px, transparent 1px);
+    background-size: 14px 14px;
   }
 }
 

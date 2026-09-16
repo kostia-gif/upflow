@@ -187,6 +187,33 @@ export default function IntroPage() {
         </div>
       </section>
 
+      <section className="flex flex-col gap-6 rounded-3xl bg-foreground p-8 text-background sm:p-10">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between sm:gap-10">
+          <div className="flex max-w-2xl flex-col gap-3">
+            <span className="text-xs font-semibold uppercase tracking-[0.14em] text-background/60">New journey · proof of concept</span>
+            <h2 className="font-sans text-2xl font-semibold tracking-tight">Continue in WhatsApp</h2>
+            <p className="text-pretty text-base leading-relaxed text-background/75">
+              The student stops in the browser and the enrolment carries on in one WhatsApp thread: a thank-you with
+              what&apos;s done and what&apos;s left, the course advisor added to the same chat, an AI assistant that
+              triages and hands over, documents sent as photos, and a signature to finish. Opening the browser from
+              the thread needs no code.
+            </p>
+          </div>
+          <div className="flex shrink-0 flex-col gap-2">
+            {brandOrder.map((id) => (
+              <Link
+                key={id}
+                href={`/whatsapp?brand=${id}`}
+                className="inline-flex items-center justify-between gap-3 rounded-xl border border-background/20 px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-background hover:text-foreground"
+              >
+                {brands[id].shortName} thread
+                <ArrowRight className="size-4" aria-hidden />
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="flex flex-col gap-6 rounded-3xl border border-border bg-muted/40 p-8 sm:p-10">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-10">
           <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-brand-soft text-brand">

@@ -34,6 +34,8 @@ type Ctx = {
   totalSteps: number
   /** Honest whole-flow estimate: the apply steps plus every module, rounded up. */
   totalMinutes: number
+  /** True once saved state has been read from storage; effects that depend on prior progress should wait for it. */
+  hydrated: boolean
 }
 
 const ApplicationContext = createContext<Ctx | null>(null)
@@ -85,8 +87,9 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
       applySteps,
       totalSteps: applySteps + modules.length,
       totalMinutes,
+      hydrated,
     }
-  }, [state])
+  }, [state, hydrated])
 
   return <ApplicationContext.Provider value={value}>{children}</ApplicationContext.Provider>
 }
