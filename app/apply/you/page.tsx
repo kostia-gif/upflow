@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { useCallback, useState } from "react"
-import { AutoAdvance } from "@/components/apply/auto-advance"
+import { Clock, MessageCircle, Save } from "lucide-react"
 import { CodeEntry } from "@/components/apply/code-entry"
 import { RepCard } from "@/components/apply/rep-card"
 import { StepFrame } from "@/components/apply/step-frame"
@@ -32,25 +32,44 @@ export default function YouPage() {
     setStage("welcome")
   }, [dispatch])
 
-  const goOn = useCallback(() => router.push("/apply/am-i-in"), [router])
-
   if (stage === "welcome") {
     const firstName = app.firstName?.trim() || "there"
+    const helpers = [
+      {
+        icon: MessageCircle,
+        title: "Stuck on anything? Just ask",
+        body: rep
+          ? `Message or call ${rep.name} from any screen — a real person, not a bot. They usually reply in minutes.`
+          : "Message or call us from any screen — a real person, not a bot.",
+      },
+      {
+        icon: Save,
+        title: "Nothing is lost",
+        body: "Every answer saves the moment you give it. Close the tab, switch phones, come back next week — it's all here.",
+      },
+      {
+        icon: Clock,
+        title: "Skip what you don't have on you",
+        body: "Missing a document? Skip that step and we'll text you when it's a good time to add it.",
+      },
+    ]
     return (
       <StepFrame
         step={2}
         totalSteps={totalSteps}
         back={false}
-        eyebrow="Verified"
+        eyebrow="You're verified"
         title={spoken ? `Welcome back, ${firstName}.` : `Nice to meet you, ${firstName}.`}
         lede={
           spoken
-            ? `${rep.name} has been looking after you and stays with you the whole way through.`
+            ? `${rep.name} has been looking after you since your chat, and stays with you right through to your first day.`
             : rep
-              ? `${rep.name} is your course advisor from here on — one person, right through to your first day.`
-              : "Your application is yours now. Let's keep going."
+              ? `Meet ${rep.name}, your ${rep.role.toLowerCase()} from here on — one person, right through to your first day.`
+              : "Your application is yours now. Here's how we make the rest easy."
         }
         showRep={false}
+        cta="Let's keep going"
+        onCta={() => router.push("/apply/am-i-in")}
       >
         <div className="flex flex-col gap-6">
           <RepCard
@@ -58,11 +77,23 @@ export default function YouPage() {
               spoken
                 ? `${rep.name} has your details — nothing to re-type`
                 : rep
-                  ? `${rep.name} is your ${rep.role.toLowerCase()} — ask them anything`
+                  ? `Hi ${firstName}, I'm ${rep.name}. Ask me anything, any time.`
                   : undefined
             }
           />
-          <AutoAdvance label="Next: a quick check that you're in" delay={2600} onDone={goOn} />
+          <ul className="flex flex-col gap-4">
+            {helpers.map(({ icon: Icon, title, body }) => (
+              <li key={title} className="flex items-start gap-3">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand">
+                  <Icon className="size-4" aria-hidden />
+                </span>
+                <div className="flex flex-col gap-0.5">
+                  <p className="text-sm font-semibold leading-snug">{title}</p>
+                  <p className="text-pretty text-sm leading-relaxed text-muted-foreground">{body}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
       </StepFrame>
     )

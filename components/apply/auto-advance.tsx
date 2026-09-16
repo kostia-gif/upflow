@@ -1,11 +1,12 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { cn } from "@/lib/utils"
 
 /**
  * Shows a short "moving on" beat then fires onDone, so a confirmed result
- * doesn't need a second tap. Unmounting cancels the timer.
+ * doesn't need a second tap. onDone is held in a ref so parent re-renders
+ * (e.g. state persisting to storage) don't restart the timer.
  */
 export function AutoAdvance({
   onDone,
@@ -18,10 +19,18 @@ export function AutoAdvance({
   label?: string
   className?: string
 }) {
+  const onDoneRef = useRef(onDone)
+  onDoneRef.current = onDone
+
   useEffect(() => {
-    const t = setTimeout(onDone, delay)
+    let fired = false
+    const t = setTimeout(() => {
+      if (fired) return
+      fired = true
+      onDoneRef.current()
+    }, delay)
     return () => clearTimeout(t)
-  }, [onDone, delay])
+  }, [delay])
 
   return (
     <div className={cn("flex flex-col gap-2", className)} role="status" aria-live="polite">

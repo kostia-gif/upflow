@@ -6,6 +6,8 @@ export type ModuleMeta = {
   description: Record<Country, string>
   minutes: number
   timeLabel: string
+  /** A document the applicant may need to have on hand; shown in the up-front overview. */
+  needs?: Record<Country, string>
 }
 
 export const moduleMeta: Record<ModuleId, ModuleMeta> = {
@@ -18,6 +20,10 @@ export const moduleMeta: Record<ModuleId, ModuleMeta> = {
     },
     minutes: 2,
     timeLabel: "2 min",
+    needs: {
+      NZ: "Photo ID — passport, birth certificate or citizenship certificate",
+      AU: "Photo ID — passport, birth certificate or citizenship certificate",
+    },
   },
   address: {
     id: "address",
@@ -35,6 +41,10 @@ export const moduleMeta: Record<ModuleId, ModuleMeta> = {
     },
     minutes: 1,
     timeLabel: "1 min",
+    needs: {
+      NZ: "Your NSN number, or a photo of your NCEA record",
+      AU: "Your USI, or a school transcript if you have one",
+    },
   },
   government: {
     id: "government",
@@ -72,6 +82,10 @@ export const moduleMeta: Record<ModuleId, ModuleMeta> = {
     },
     minutes: 1,
     timeLabel: "1 min",
+    needs: {
+      NZ: "A CV or other proof of work or study — only if you want credit for it",
+      AU: "A CV or other proof of work or study — only if you want credit for it",
+    },
   },
   statement: {
     id: "statement",
@@ -92,6 +106,10 @@ export const moduleMeta: Record<ModuleId, ModuleMeta> = {
     },
     minutes: 2,
     timeLabel: "2 min",
+    needs: {
+      NZ: "A link or a few images of something you've made",
+      AU: "A link or a few images of something you've made",
+    },
   },
   "placement-check": {
     id: "placement-check",
@@ -139,6 +157,13 @@ export function modulesFor(course: CourseConfig, country: Country): ModuleId[] {
     }
   }
   return result
+}
+
+/** Documents the applicant may want on hand for this course, in flow order. */
+export function needsFor(course: CourseConfig, country: Country): string[] {
+  return modulesFor(course, country)
+    .map((m) => moduleMeta[m].needs?.[country])
+    .filter((n): n is string => !!n)
 }
 
 /** Start, You and Am I in? together take about three minutes. */

@@ -5,6 +5,7 @@ import { Clock, Wallet } from "lucide-react"
 import { Segmented } from "@/components/apply/segmented"
 import { NativeSelect, TextLink } from "@/components/apply/primitives"
 import { StepFrame } from "@/components/apply/step-frame"
+import { WhatYouNeed } from "@/components/apply/what-you-need"
 import { useApplication } from "@/lib/application/context"
 
 export default function StartPage() {
@@ -33,8 +34,8 @@ export default function StartPage() {
       }
       lede={
         spoken
-          ? `${rep.name} set this up from your chat — check the details and hit Start. About ${totalMinutes} minutes all in, and we save as you go.`
-          : `About ${totalMinutes} minutes, all in one go. Stop any time — we save as you go and text you a link back.`
+          ? `${rep.name} set this up from your chat — check the details and hit Start. About ${totalMinutes} minutes all in.`
+          : `About ${totalMinutes} minutes if you do it in one go — but you don't have to. We save as you go.`
       }
       showRep={false}
       cta="Start"
@@ -120,6 +121,8 @@ export default function StartPage() {
             </NativeSelect>
           </div>
         )}
+
+        <WhatYouNeed />
       </div>
     </StepFrame>
   )
