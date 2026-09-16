@@ -8,6 +8,7 @@ import {
   Copy,
   Compass,
   MessageCircleOff,
+  MessagesSquare,
   ScanFace,
   ThermometerSnowflake,
   TrendingDown,
@@ -56,7 +57,12 @@ const comparison = [
   {
     label: "Time to an offer",
     before: "Three weeks, one laptop weekend, one JP",
-    after: "Six to nine days, one phone, no essay night",
+    after: "As fast as the same session — many finish and get an offer instantly",
+  },
+  {
+    label: "Finishing what you start",
+    before: "Most people who start never finish; if they come back at all, it's cold",
+    after: "Built to be completed in one sitting — most now go start to finish in a single go",
   },
   {
     label: "First contact",
@@ -67,6 +73,11 @@ const comparison = [
     label: "Starting the application",
     before: "A six-section login form — set a password, start from nothing",
     after: "One link that already knows your name, course and intake",
+  },
+  {
+    label: "Sales and the application",
+    before: "Two separate worlds — the sales conversation ends, then the form starts cold",
+    after: "One conversation throughout — enquiry, sales chat and application stay in the same thread, back and forth, right through to enrolment",
   },
   {
     label: "What you've told us before",
@@ -122,6 +133,67 @@ export default function IntroPage() {
           configuration, not a rebuild.
         </p>
       </header>
+
+      <section className="flex flex-col gap-8">
+        <div className="flex flex-col gap-2">
+          <h2 className="font-sans text-2xl font-semibold tracking-tight text-foreground">Four schools, one spine</h2>
+          <p className="max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground">
+            Pick a school to walk its course page and application exactly as a student would.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {brandOrder.map((id) => {
+            const b = brands[id]
+            const course = defaultCourseFor(id)
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => openSchool(id)}
+                className="group flex flex-col gap-5 rounded-3xl border border-border p-6 text-left transition-colors hover:border-foreground/30"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <Image src={b.logo} alt={b.name} width={120} height={36} className="h-7 w-auto" />
+                  <span
+                    className="size-3 shrink-0 rounded-full"
+                    style={{ background: b.primary }}
+                    aria-hidden
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    {course.shortTitle} · {b.country === "AU" ? "Australia" : "New Zealand"}
+                  </span>
+                  <p className="text-sm leading-relaxed text-muted-foreground">{schoolBlurbs[id]}</p>
+                </div>
+                <span className="mt-auto inline-flex items-center gap-1.5 text-sm font-semibold text-foreground">
+                  Walk the {b.shortName} flow
+                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      </section>
+
+      <section className="flex flex-col gap-6 rounded-3xl border border-border bg-muted/40 p-8 sm:p-10">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-10">
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-brand-soft text-brand">
+            <MessagesSquare className="size-6" aria-hidden />
+          </div>
+          <div className="flex flex-col gap-3">
+            <h2 className="font-sans text-2xl font-semibold tracking-tight text-foreground">
+              Sales isn&apos;t handed off — it&apos;s carried through
+            </h2>
+            <p className="max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground">
+              Today, a sales conversation ends and the application starts cold, as if it never happened. In this
+              model the two are one continuous thread: the same conversation that opens with an enquiry can carry
+              straight through advice, back-and-forth questions, the application itself and everything after —
+              nothing gets re-explained, and nobody has to start again.
+            </p>
+          </div>
+        </div>
+      </section>
 
       <section className="flex flex-col gap-8">
         <div className="flex flex-col gap-2">
@@ -183,48 +255,6 @@ export default function IntroPage() {
               </div>
             ))}
           </div>
-        </div>
-      </section>
-
-      <section className="flex flex-col gap-8">
-        <div className="flex flex-col gap-2">
-          <h2 className="font-sans text-2xl font-semibold tracking-tight text-foreground">Four schools, one spine</h2>
-          <p className="max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground">
-            Pick a school to walk its course page and application exactly as a student would.
-          </p>
-        </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {brandOrder.map((id) => {
-            const b = brands[id]
-            const course = defaultCourseFor(id)
-            return (
-              <button
-                key={id}
-                type="button"
-                onClick={() => openSchool(id)}
-                className="group flex flex-col gap-5 rounded-3xl border border-border p-6 text-left transition-colors hover:border-foreground/30"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <Image src={b.logo} alt={b.name} width={120} height={36} className="h-7 w-auto" />
-                  <span
-                    className="size-3 shrink-0 rounded-full"
-                    style={{ background: b.primary }}
-                    aria-hidden
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    {course.shortTitle} · {b.country === "AU" ? "Australia" : "New Zealand"}
-                  </span>
-                  <p className="text-sm leading-relaxed text-muted-foreground">{schoolBlurbs[id]}</p>
-                </div>
-                <span className="mt-auto inline-flex items-center gap-1.5 text-sm font-semibold text-foreground">
-                  Walk the {b.shortName} flow
-                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
-                </span>
-              </button>
-            )
-          })}
         </div>
       </section>
 
