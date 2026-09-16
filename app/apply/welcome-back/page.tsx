@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter, useSearchParams } from "next/navigation"
-import { useEffect } from "react"
+import { Suspense, useEffect } from "react"
 import { useApplication } from "@/lib/application/context"
 import { returningFixture } from "@/lib/application/reducer"
 import { brandOrder } from "@/lib/config/brands"
@@ -11,7 +11,7 @@ function isBrandId(value: string | null): value is BrandId {
   return !!value && (brandOrder as string[]).includes(value)
 }
 
-export default function WelcomeBackPage() {
+function WelcomeBackRedirect() {
   const router = useRouter()
   const params = useSearchParams()
   const { state, dispatch } = useApplication()
@@ -26,9 +26,16 @@ export default function WelcomeBackPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  return null
+}
+
+export default function WelcomeBackPage() {
   return (
     <div className="flex flex-1 items-center justify-center p-10 text-sm text-muted-foreground" aria-live="polite">
       Finding your application…
+      <Suspense>
+        <WelcomeBackRedirect />
+      </Suspense>
     </div>
   )
 }
