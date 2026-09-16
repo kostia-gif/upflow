@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { ArrowLeft, Bot, FileUp, MessageSquareText, PenLine, UserRound, Globe } from "lucide-react"
+import { ArrowLeft, Bot, Download, FileUp, MessageSquareText, PenLine, UserRound, Globe } from "lucide-react"
 import { Suspense, useEffect, useState } from "react"
 import { WhatsAppChat } from "@/components/whatsapp/chat"
 import { useApplication } from "@/lib/application/context"
@@ -147,6 +147,14 @@ function Journey() {
             })}
           </div>
           <p className="text-pretty px-2 text-center text-xs leading-relaxed text-muted-foreground">{current.note}</p>
+          <a
+            href={`/whatsapp/transcript?brand=${brand}`}
+            download
+            className="inline-flex items-center justify-center gap-1.5 self-center text-xs font-medium text-foreground underline-offset-4 hover:underline"
+          >
+            <Download className="size-3.5" aria-hidden="true" />
+            Download the full dialogue (WhatsApp + SMS, Markdown)
+          </a>
         </div>
         <div className="h-[calc(100svh-3rem)] w-full max-w-[400px] overflow-hidden rounded-[2rem] border-[6px] border-foreground bg-foreground shadow-2xl sm:h-[800px]">
           <div className="h-full overflow-hidden rounded-[1.6rem]">
