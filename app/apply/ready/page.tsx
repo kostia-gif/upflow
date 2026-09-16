@@ -1,13 +1,14 @@
 "use client"
 
+import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { CalendarClock, MessageSquare } from "lucide-react"
-import { useCallback } from "react"
+import { ArrowLeft, CalendarClock, Play } from "lucide-react"
+import { useCallback, useState } from "react"
 import { CodeEntry } from "@/components/apply/code-entry"
 import { ModuleRow } from "@/components/apply/module-row"
 import { Eyebrow, Lede, PrimaryButton, TextLink, Title } from "@/components/apply/primitives"
 import { RepCard } from "@/components/apply/rep-card"
-import { StatusTracker } from "@/components/apply/status-tracker"
+import { ProgressSegments, WhatsAppPopOut } from "@/components/apply/step-frame"
 import { useApplication } from "@/lib/application/context"
 import { isComplete } from "@/lib/application/reducer"
 import { minutesLabel } from "@/lib/config/modules"
@@ -15,15 +16,29 @@ import { formatDayMonth } from "@/lib/format"
 
 export default function ReadyHubPage() {
   const router = useRouter()
-  const { state, app, brand, modules, progress, minutesLeft, nextModule, dispatch } = useApplication()
+  const { state, app, brand, rep, modules, progress, minutesLeft, totalSteps, applySteps, nextModule, dispatch } =
+    useApplication()
   const gated = state.dev.returning && !state.dev.returningVerified
   const firstName = app.firstName?.trim()
   const name = firstName ? `, ${firstName}` : ""
   const onVerified = useCallback(() => dispatch({ type: "SET_DEV", dev: { returningVerified: true } }), [dispatch])
+  const [playing, setPlaying] = useState(false)
 
   if (gated) {
     return (
-      <div className="flex flex-col gap-6 px-5 pb-8 pt-6">
+      <div className="flex flex-col gap-6 px-5 pb-8 pt-4">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => router.back()}
+            aria-label="Back"
+            className="flex size-10 shrink-0 items-center justify-center rounded-full text-foreground hover:bg-muted"
+          >
+            <ArrowLeft className="size-5" aria-hidden />
+          </button>
+          <div className="flex-1" />
+          <WhatsAppPopOut />
+        </div>
         <div className="flex flex-col gap-3">
           <Eyebrow>Welcome back</Eyebrow>
           <Title>Good to see you{name}.</Title>
@@ -41,31 +56,42 @@ export default function ReadyHubPage() {
   const allDone = othersDone && isComplete(app, "sign")
   const next = nextModule(state.lastModule)
   const nextIsSign = next === "sign"
+  const justArrived = progress.done === 0
 
   return (
     <div className="flex flex-col">
-      <div className="flex flex-col gap-6 px-5 pb-6 pt-6">
+      <div className="flex flex-col gap-6 px-5 pb-6 pt-4">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => router.back()}
+            aria-label="Back"
+            className="flex size-10 shrink-0 items-center justify-center rounded-full text-foreground hover:bg-muted"
+          >
+            <ArrowLeft className="size-5" aria-hidden />
+          </button>
+          <div className="flex-1">
+            <ProgressSegments step={applySteps + progress.done} total={totalSteps} />
+          </div>
+          <WhatsAppPopOut />
+        </div>
+
         <div className="flex flex-col gap-3">
-          <Eyebrow>Getting ready</Eyebrow>
+          <Eyebrow>{justArrived ? "You're in — now let's get you ready" : "Getting ready"}</Eyebrow>
           <Title>
             {allDone
               ? `All done${name}.`
-              : progress.done === 0
-                ? `Let's get you ready${name}.`
+              : justArrived
+                ? `Nice one${name}. Your place is on hold.`
                 : `Nice one${name}. ${progress.total - progress.done} to go.`}
           </Title>
           <Lede>
             {allDone
               ? `We're checking the last bits. ${brand.shortName} will confirm your enrolment by text.`
-              : `${progress.done} of ${progress.total} done · ${minutesLabel(minutesLeft).toLowerCase()}. Stop whenever — we save as you go.`}
+              : justArrived
+                ? `We've texted a confirmation to ${app.mobile || "your mobile"}. A few quick steps left, ${minutesLabel(minutesLeft).toLowerCase()} — do them now, or stop anytime and we'll save your place.`
+                : `${progress.done} of ${progress.total} done · ${minutesLabel(minutesLeft).toLowerCase()}. Stop whenever — we save as you go.`}
           </Lede>
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <div className="flex h-2 overflow-hidden rounded-full bg-brand/15" role="progressbar" aria-valuemin={0} aria-valuemax={progress.total} aria-valuenow={progress.done} aria-label="Get-ready progress">
-            <div className="rounded-full bg-brand transition-[width] duration-500" style={{ width: `${(progress.done / progress.total) * 100}%` }} />
-          </div>
-          <StatusTracker current={allDone ? "Enrolled" : "Getting ready"} />
         </div>
 
         {app.holdUntil && !allDone && (
@@ -77,7 +103,41 @@ export default function ReadyHubPage() {
           </div>
         )}
 
-        <RepCard />
+        <RepCard
+          intro={
+            justArrived && rep
+              ? app.repAssigned === "assigned"
+                ? `${rep.name} is looking after you`
+                : `${rep.name} has your application`
+              : undefined
+          }
+        />
+
+        {justArrived && (
+          <button
+            type="button"
+            onClick={() => setPlaying(true)}
+            className="group relative aspect-video w-full overflow-hidden rounded-2xl bg-foreground text-left"
+            aria-label={`Play video: ${brand.tutorVideoCaption}`}
+          >
+            <Image
+              src={brand.tutorVideoPoster}
+              alt=""
+              fill
+              sizes="480px"
+              className={playing ? "object-cover opacity-60" : "object-cover transition-transform group-hover:scale-[1.02]"}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/10 to-transparent" />
+            <div className="absolute inset-x-4 bottom-4 flex items-center gap-3 text-background">
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-background text-foreground">
+                <Play className="ml-0.5 size-5" aria-hidden />
+              </span>
+              <span className="text-sm font-medium leading-snug">
+                {playing ? "Video playback is mocked in this prototype" : brand.tutorVideoCaption}
+              </span>
+            </div>
+          </button>
+        )}
 
         <ul className="flex flex-col gap-2">
           {modules.map((m) => (
@@ -93,16 +153,13 @@ export default function ReadyHubPage() {
           ))}
         </ul>
 
-        <div className="flex items-start gap-3 rounded-2xl border border-border p-4">
-          <MessageSquare className="mt-0.5 size-5 shrink-0 text-brand" aria-hidden />
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            Rather do this over WhatsApp?{" "}
-            <TextLink href="/apply/whatsapp" className="min-h-0 text-brand">
-              Switch channel
-            </TextLink>
-            . Your progress comes with you.
-          </p>
-        </div>
+        <p className="text-center text-sm text-muted-foreground">
+          Rather do this on WhatsApp?{" "}
+          <TextLink href="/apply/whatsapp" className="min-h-0 text-brand">
+            Switch channel
+          </TextLink>{" "}
+          — your progress comes with you either way.
+        </p>
       </div>
 
       <div className="sticky bottom-0 flex flex-col gap-2 border-t border-border bg-background/95 px-5 pb-safe pt-4 backdrop-blur sm:rounded-b-3xl">
@@ -110,7 +167,11 @@ export default function ReadyHubPage() {
           <PrimaryButton onClick={() => router.push("/apply/done")}>See what happens next</PrimaryButton>
         ) : (
           <PrimaryButton onClick={() => next && router.push(`/apply/ready/${next}`)}>
-            {nextIsSign ? "Review and sign" : progress.done === 0 ? "Start with the first one" : "Next step"}
+            {nextIsSign
+              ? "Review and sign"
+              : justArrived
+                ? `Finish & confirm my place · ${Math.ceil(minutesLeft)} min`
+                : "Next step"}
           </PrimaryButton>
         )}
         {!allDone && (

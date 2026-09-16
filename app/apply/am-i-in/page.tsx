@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils"
 
 export default function AmIInPage() {
   const router = useRouter()
-  const { app, brand, course, rep, dispatch } = useApplication()
+  const { app, brand, course, rep, totalSteps, dispatch } = useApplication()
 
   const countryName = brand.country === "AU" ? "Australian" : "New Zealand"
   const answered = course.eligibilityQuestions.every((q) => app.eligibility[q.id]) && !!app.residency
@@ -30,6 +30,7 @@ export default function AmIInPage() {
   return (
     <StepFrame
       step={3}
+      totalSteps={totalSteps}
       title="Am I in?"
       lede="Quick honesty check. Most people are — and if you're not quite there yet, we'll show you what fits."
       cta={international ? undefined : "Next"}

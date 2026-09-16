@@ -1,11 +1,28 @@
 "use client"
 
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, MessageCircle } from "lucide-react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import type { ReactNode } from "react"
 import { cn } from "@/lib/utils"
 import { Eyebrow, Lede, PrimaryButton, Title } from "./primitives"
 import { RepCard } from "./rep-card"
+
+export function WhatsAppPopOut({ className }: { className?: string }) {
+  return (
+    <Link
+      href="/apply/whatsapp"
+      aria-label="Continue this on WhatsApp instead"
+      title="Continue on WhatsApp"
+      className={cn(
+        "flex size-10 shrink-0 items-center justify-center rounded-full text-brand hover:bg-brand-soft",
+        className,
+      )}
+    >
+      <MessageCircle className="size-5" aria-hidden />
+    </Link>
+  )
+}
 
 export function ProgressSegments({ step, total }: { step: number; total: number }) {
   return (
@@ -76,6 +93,7 @@ export function StepFrame({
                   <ProgressSegments step={step} total={totalSteps} />
                 </div>
               )}
+              <WhatsAppPopOut />
             </div>
           )}
           <div className="flex flex-col gap-3">

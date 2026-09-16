@@ -28,6 +28,10 @@ type Ctx = {
   minutesLeft: number
   nextModule: (after?: ModuleId) => ModuleId | undefined
   dispatch: (a: Action) => void
+  /** Number of steps in the apply mini-form before get-ready begins. */
+  applySteps: number
+  /** Total steps across the whole flow: apply steps + every get-ready module. */
+  totalSteps: number
 }
 
 const ApplicationContext = createContext<Ctx | null>(null)
@@ -63,6 +67,7 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
     const course = getCourse(app.courseId) ?? defaultCourseFor(app.brand)
     const modules = moduleList(app)
     const minutesLeft = modules.filter((m) => !isComplete(app, m)).reduce((sum, m) => sum + moduleMeta[m].minutes, 0)
+    const applySteps = 3
     return {
       state,
       app,
@@ -74,6 +79,8 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
       minutesLeft,
       nextModule: (after) => nextTodoModule(app, after),
       dispatch,
+      applySteps,
+      totalSteps: applySteps + modules.length,
     }
   }, [state])
 

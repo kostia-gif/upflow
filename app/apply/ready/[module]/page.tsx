@@ -7,6 +7,7 @@ import { useCallback } from "react"
 import { toast } from "sonner"
 import { moduleComponents } from "@/components/apply/modules"
 import { Lede, TextLink, Title } from "@/components/apply/primitives"
+import { ProgressSegments, WhatsAppPopOut } from "@/components/apply/step-frame"
 import { useApplication } from "@/lib/application/context"
 import { minutesLabel, moduleMeta } from "@/lib/config/modules"
 import type { ModuleId, ModuleStatus } from "@/lib/types"
@@ -14,7 +15,7 @@ import type { ModuleId, ModuleStatus } from "@/lib/types"
 export default function ModulePage() {
   const params = useParams<{ module: string }>()
   const router = useRouter()
-  const { app, brand, modules, progress, nextModule, dispatch } = useApplication()
+  const { app, brand, modules, applySteps, totalSteps, nextModule, dispatch } = useApplication()
   const id = params.module as ModuleId
 
   if (!modules.includes(id)) notFound()
@@ -56,15 +57,18 @@ export default function ModulePage() {
         >
           <ArrowLeft className="size-5" aria-hidden />
         </Link>
-        <p className="text-xs font-medium text-muted-foreground">
-          Step {index + 1} of {modules.length} · {progress.done} done
-        </p>
-        <span className="ml-auto flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
-          <Clock className="size-3.5" aria-hidden /> {minutesLabel(meta.minutes)}
-        </span>
+        <div className="flex-1">
+          <ProgressSegments step={applySteps + index + 1} total={totalSteps} />
+        </div>
+        <WhatsAppPopOut />
       </div>
       <div className="flex flex-col gap-3">
-        <Title>{meta.title}</Title>
+        <div className="flex items-center justify-between gap-3">
+          <Title>{meta.title}</Title>
+          <span className="flex shrink-0 items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
+            <Clock className="size-3.5" aria-hidden /> {minutesLabel(meta.minutes)}
+          </span>
+        </div>
         <Lede>{meta.description[brand.country]}</Lede>
       </div>
       {app.modules[id] && app.modules[id] !== "todo" && (

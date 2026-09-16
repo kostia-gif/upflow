@@ -9,13 +9,14 @@ import { useApplication } from "@/lib/application/context"
 
 export default function StartPage() {
   const router = useRouter()
-  const { app, brand, course, dispatch } = useApplication()
+  const { app, brand, course, totalSteps, dispatch } = useApplication()
   const campus = course.campuses.find((c) => c.id === app.campusId)
   const ready = !!app.campusId && !!app.intakeId
 
   return (
     <StepFrame
       step={1}
+      totalSteps={totalSteps}
       back={false}
       title={
         <>

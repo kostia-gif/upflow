@@ -12,7 +12,7 @@ import { isValidEmail, isValidMobile } from "@/lib/format"
 
 export default function YouPage() {
   const router = useRouter()
-  const { app, brand, dispatch } = useApplication()
+  const { app, brand, totalSteps, dispatch } = useApplication()
   const prefilled = !!(app.firstName && app.lastName && app.mobile && app.email)
   const [stage, setStage] = useState<"details" | "code">(prefilled && !app.mobileVerified ? "code" : "details")
 
@@ -32,6 +32,7 @@ export default function YouPage() {
     return (
       <StepFrame
         step={2}
+        totalSteps={totalSteps}
         eyebrow={app.entryPath === "A" ? "Almost there" : undefined}
         title={app.entryPath === "A" ? `Welcome back, ${app.firstName}.` : "Check your phone."}
         lede={
@@ -48,6 +49,7 @@ export default function YouPage() {
   return (
     <StepFrame
       step={2}
+      totalSteps={totalSteps}
       title="First, who are you?"
       lede="Just enough to save your place."
       cta="Send me a code to confirm"

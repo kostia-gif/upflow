@@ -14,7 +14,7 @@ const fundingFor: Record<MoneyHelp, FundingId | undefined> = { help: "loan", sor
 
 export default function MoneyPage() {
   const router = useRouter()
-  const { app, brand, dispatch } = useApplication()
+  const { app, brand, totalSteps, dispatch } = useApplication()
   const au = brand.country === "AU"
   const scheme = au ? "FEE-HELP" : "Fees Free or StudyLink"
   const shareWithParent = app.parentMobile !== undefined
@@ -24,12 +24,13 @@ export default function MoneyPage() {
     if (app.parentMobile === "") dispatch({ type: "SET_FIELDS", fields: { parentMobile: undefined } })
     dispatch({ type: "SUBMIT" })
     dispatch({ type: "ASSIGN_ADVISOR" })
-    router.push("/apply/received")
+    router.push("/apply/ready")
   }
 
   return (
     <StepFrame
       step={3}
+      totalSteps={totalSteps}
       eyebrow="Last one"
       title="Want a hand with the money side?"
       lede="Nothing to decide and nothing to pay today. We just want to point you the right way."

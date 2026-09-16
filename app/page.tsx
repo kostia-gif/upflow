@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
   ArrowRight,
@@ -146,10 +147,8 @@ export default function IntroPage() {
             const b = brands[id]
             const course = defaultCourseFor(id)
             return (
-              <button
+              <div
                 key={id}
-                type="button"
-                onClick={() => openSchool(id)}
                 className="group flex flex-col gap-5 rounded-3xl border border-border p-6 text-left transition-colors hover:border-foreground/30"
               >
                 <div className="flex items-center justify-between gap-3">
@@ -166,11 +165,23 @@ export default function IntroPage() {
                   </span>
                   <p className="text-sm leading-relaxed text-muted-foreground">{schoolBlurbs[id]}</p>
                 </div>
-                <span className="mt-auto inline-flex items-center gap-1.5 text-sm font-semibold text-foreground">
-                  Walk the {b.shortName} flow
-                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
-                </span>
-              </button>
+                <div className="mt-auto flex items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={() => openSchool(id)}
+                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-foreground"
+                  >
+                    Walk the {b.shortName} flow
+                    <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
+                  </button>
+                  <Link
+                    href={`/apply/welcome-back?brand=${id}`}
+                    className="text-xs font-medium text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+                  >
+                    Already applied?
+                  </Link>
+                </div>
+              </div>
             )
           })}
         </div>

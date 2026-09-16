@@ -16,10 +16,10 @@ const jumps = [
   ["/", "Intro"],
   ["/course", "Course page"],
   ["/apply", "Apply"],
-  ["/apply/received", "Received"],
   ["/apply/ready", "Get ready hub"],
   ["/apply/done", "Done"],
   ["/apply/whatsapp", "WhatsApp"],
+  ["/apply/welcome-back", "Returning student"],
   ["/international", "International"],
 ]
 
