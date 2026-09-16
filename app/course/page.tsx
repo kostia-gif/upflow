@@ -9,7 +9,7 @@ import { Eyebrow } from "@/components/apply/primitives"
 import { useApplication } from "@/lib/application/context"
 import { defaultCourseFor } from "@/lib/config/courses"
 import { getRep } from "@/lib/config/reps"
-import { cn } from "@/lib/utils"
+import { cn, frameClass } from "@/lib/utils"
 
 export default function CoursePage() {
   const { state, brand } = useApplication()
@@ -31,7 +31,12 @@ export default function CoursePage() {
   ]
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-[480px] flex-col bg-background sm:my-6 sm:min-h-0 sm:overflow-hidden sm:rounded-3xl sm:shadow-[0_24px_60px_-24px_rgb(0_0_0/0.25)]">
+    <main
+      className={cn(
+        "mx-auto flex min-h-svh w-full flex-col bg-background sm:my-6 sm:min-h-0 sm:overflow-hidden",
+        frameClass(state.dev.desktopView),
+      )}
+    >
       <header className="flex items-center justify-between px-5 py-4">
         <Image src={brand.logo} alt={brand.name} width={120} height={36} className="h-8 w-auto" priority />
         <a href={`tel:${brand.supportPhone}`} className="text-sm font-medium text-brand">

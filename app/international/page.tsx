@@ -8,11 +8,12 @@ import { NativeSelect, PrimaryButton, Eyebrow, Lede, Title } from "@/components/
 import { TextField } from "@/components/apply/text-field"
 import { useApplication } from "@/lib/application/context"
 import { isValidEmail } from "@/lib/format"
+import { cn, frameClass } from "@/lib/utils"
 
 const countries = ["India", "China", "Philippines", "Nepal", "Vietnam", "Brazil", "Colombia", "Sri Lanka", "Other"]
 
 export default function InternationalPage() {
-  const { app, brand, course } = useApplication()
+  const { app, brand, course, state } = useApplication()
   const [country, setCountry] = useState("")
   const [email, setEmail] = useState(app.email ?? "")
   const [sent, setSent] = useState(false)
@@ -24,7 +25,12 @@ export default function InternationalPage() {
   ]
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-[480px] flex-col gap-6 bg-background px-5 pb-10 pt-4 sm:my-6 sm:min-h-0 sm:rounded-3xl sm:shadow-[0_24px_60px_-24px_rgb(0_0_0/0.25)]">
+    <main
+      className={cn(
+        "mx-auto flex min-h-svh w-full flex-col gap-6 bg-background px-5 pb-10 pt-4 sm:my-6 sm:min-h-0",
+        frameClass(state.dev.desktopView),
+      )}
+    >
       <Link href="/apply/am-i-in" className="flex size-10 items-center justify-center rounded-full hover:bg-muted" aria-label="Back">
         <ArrowLeft className="size-5" aria-hidden />
       </Link>

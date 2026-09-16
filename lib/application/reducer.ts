@@ -9,6 +9,7 @@ export type DevState = {
   entryPath: "A" | "B"
   returning: boolean
   returningVerified: boolean
+  desktopView: boolean
 }
 
 export type State = {
@@ -96,7 +97,7 @@ export function returningFixture(brand: BrandId): Application {
 
 export const initialState: State = {
   app: newApplication("aipc"),
-  dev: { brand: "aipc", entryPath: "B", returning: false, returningVerified: false },
+  dev: { brand: "aipc", entryPath: "B", returning: false, returningVerified: false, desktopView: false },
 }
 
 export function reducer(state: State, action: Action): State {
