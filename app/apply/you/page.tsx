@@ -59,13 +59,13 @@ export default function YouPage() {
         totalSteps={totalSteps}
         back={false}
         eyebrow="You're verified"
-        title={spoken ? `Welcome back, ${firstName}.` : `Nice to meet you, ${firstName}.`}
+        title={`Welcome back, ${firstName}.`}
         lede={
-          spoken
-            ? `${rep.name} has been looking after you since your chat, and stays with you right through to your first day.`
-            : rep
-              ? `Meet ${rep.name}, your ${rep.role.toLowerCase()} from here on — one person, right through to your first day.`
-              : "Your application is yours now. Here's how we make the rest easy."
+          rep
+            ? spoken
+              ? `${rep.name} has been looking after you since your chat, and stays with you right through to your first day.`
+              : `Good to hear from you again. ${rep.name}, who you spoke to when you enquired, is your ${rep.role.toLowerCase()} from here on — one person, right through to your first day.`
+            : "Your application is yours now. Here's how we make the rest easy."
         }
         showRep={false}
         cta="Let's keep going"
@@ -74,11 +74,11 @@ export default function YouPage() {
         <div className="flex flex-col gap-6">
           <RepCard
             intro={
-              spoken
-                ? `${rep.name} has your details — nothing to re-type`
-                : rep
-                  ? `Hi ${firstName}, I'm ${rep.name}. Ask me anything, any time.`
-                  : undefined
+              rep
+                ? spoken
+                  ? `Welcome back, ${firstName} — I've kept your details, nothing to re-type.`
+                  : `Welcome back, ${firstName}! Great to see you taking the next step. Ask me anything, any time.`
+                : undefined
             }
           />
           <ul className="flex flex-col gap-4">
