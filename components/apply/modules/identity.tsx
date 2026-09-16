@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useState } from "react"
+import { AutoAdvance } from "@/components/apply/auto-advance"
 import { MockCamera } from "@/components/apply/mock-camera"
 import { OptionCards } from "@/components/apply/option-cards"
 import { PrimaryButton, TextLink } from "@/components/apply/primitives"
@@ -43,11 +44,10 @@ export function IdentityModule({ onComplete }: ModuleProps) {
             <dd className="font-medium">{citizenship}</dd>
           </dl>
         </div>
-        <PrimaryButton
-          onClick={() => onComplete("checking", { method: doc ?? "photo", name: readName, dob: readDob, citizenship })}
-        >
-          Yes, that&apos;s me
-        </PrimaryButton>
+        <AutoAdvance
+          label="Looks right — moving on"
+          onDone={() => onComplete("checking", { method: doc ?? "photo", name: readName, dob: readDob, citizenship })}
+        />
         <div className="flex justify-center">
           <TextLink onClick={() => setRead(false)}>Something&apos;s wrong, retake</TextLink>
         </div>

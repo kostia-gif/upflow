@@ -36,6 +36,7 @@ export default function StartPage() {
           ? `${rep.name} set this up from your chat — check the details and hit Start. About ${totalMinutes} minutes all in, and we save as you go.`
           : `About ${totalMinutes} minutes, all in one go. Stop any time — we save as you go and text you a link back.`
       }
+      showRep={false}
       cta="Start"
       ctaDisabled={!ready}
       onCta={() => router.push("/apply/you")}

@@ -2,7 +2,9 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useCallback } from "react"
 import { CheckCircle2, CircleAlert, Globe } from "lucide-react"
+import { AutoAdvance } from "@/components/apply/auto-advance"
 import { Segmented } from "@/components/apply/segmented"
 import { StepFrame } from "@/components/apply/step-frame"
 import { WhyWeAsk } from "@/components/apply/why-we-ask"
@@ -13,12 +15,11 @@ export default function AmIInPage() {
   const router = useRouter()
   const { app, brand, course, rep, totalSteps, nextModule, dispatch } = useApplication()
 
-  function keepGoing() {
+  const keepGoing = useCallback(() => {
     dispatch({ type: "SUBMIT" })
-    dispatch({ type: "ASSIGN_ADVISOR" })
     const first = nextModule()
     router.push(first ? `/apply/ready/${first}` : "/apply/ready")
-  }
+  }, [dispatch, nextModule, router])
 
   const countryName = brand.country === "AU" ? "Australian" : "New Zealand"
   const answered = course.eligibilityQuestions.every((q) => app.eligibility[q.id]) && !!app.residency
@@ -40,9 +41,7 @@ export default function AmIInPage() {
       totalSteps={totalSteps}
       title="Am I in?"
       lede="Quick honesty check. Most people are — and if you're not quite there yet, we'll show you what fits."
-      cta={international ? undefined : answered && !hardFail ? "Yes, I'm in — keep going" : "Next"}
-      ctaDisabled={!answered || !!hardFail}
-      onCta={keepGoing}
+      showRep={false}
     >
       <div className="flex flex-col gap-6">
         {course.eligibilityQuestions.map((q) => (
@@ -108,7 +107,7 @@ export default function AmIInPage() {
                 </p>
                 {!hardFail && (
                   <p className="text-sm leading-relaxed text-foreground/80">
-                    Hit keep going and we&apos;ll hold your place for {course.holdDays} days while you finish the rest.
+                    We&apos;re holding your place for {course.holdDays} days while you finish the rest.
                   </p>
                 )}
                 {hardFail?.q.failNote && <p className="text-sm leading-relaxed">{hardFail.q.failNote}</p>}
@@ -119,13 +118,15 @@ export default function AmIInPage() {
                 ))}
               </div>
             </div>
-            {hardFail && (
+            {hardFail ? (
               <Link
                 href="/"
                 className="flex h-12 items-center justify-center rounded-xl bg-foreground text-sm font-semibold text-background"
               >
                 {rep ? `Talk to ${rep.name} about options` : "See courses that fit now"}
               </Link>
+            ) : (
+              <AutoAdvance label="Place held — on to the quick bits" delay={1800} onDone={keepGoing} />
             )}
           </div>
         )}

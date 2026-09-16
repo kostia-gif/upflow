@@ -2,8 +2,9 @@
 
 import { useRouter } from "next/navigation"
 import { useCallback, useState } from "react"
-import { toast } from "sonner"
+import { AutoAdvance } from "@/components/apply/auto-advance"
 import { CodeEntry } from "@/components/apply/code-entry"
+import { RepCard } from "@/components/apply/rep-card"
 import { StepFrame } from "@/components/apply/step-frame"
 import { TextField } from "@/components/apply/text-field"
 import { WhyWeAsk } from "@/components/apply/why-we-ask"
@@ -15,7 +16,9 @@ export default function YouPage() {
   const { app, brand, rep, totalSteps, dispatch } = useApplication()
   const spoken = app.repAssigned === "spoken" && !!rep
   const prefilled = !!(app.firstName && app.lastName && app.mobile && app.email)
-  const [stage, setStage] = useState<"details" | "code">(prefilled && !app.mobileVerified ? "code" : "details")
+  const [stage, setStage] = useState<"details" | "code" | "welcome">(
+    prefilled && !app.mobileVerified ? "code" : "details",
+  )
 
   const set = (k: "firstName" | "lastName" | "mobile" | "email") => (v: string) =>
     dispatch({ type: "SET_FIELDS", fields: { [k]: v } })
@@ -25,9 +28,45 @@ export default function YouPage() {
 
   const onVerified = useCallback(() => {
     dispatch({ type: "SET_FIELDS", fields: { mobileVerified: true } })
-    toast.success("Mobile verified")
-    router.push("/apply/am-i-in")
-  }, [dispatch, router])
+    dispatch({ type: "ASSIGN_ADVISOR" })
+    setStage("welcome")
+  }, [dispatch])
+
+  const goOn = useCallback(() => router.push("/apply/am-i-in"), [router])
+
+  if (stage === "welcome") {
+    const firstName = app.firstName?.trim() || "there"
+    return (
+      <StepFrame
+        step={2}
+        totalSteps={totalSteps}
+        back={false}
+        eyebrow="Verified"
+        title={spoken ? `Welcome back, ${firstName}.` : `Nice to meet you, ${firstName}.`}
+        lede={
+          spoken
+            ? `${rep.name} has been looking after you and stays with you the whole way through.`
+            : rep
+              ? `${rep.name} is your course advisor from here on — one person, right through to your first day.`
+              : "Your application is yours now. Let's keep going."
+        }
+        showRep={false}
+      >
+        <div className="flex flex-col gap-6">
+          <RepCard
+            intro={
+              spoken
+                ? `${rep.name} has your details — nothing to re-type`
+                : rep
+                  ? `${rep.name} is your ${rep.role.toLowerCase()} — ask them anything`
+                  : undefined
+            }
+          />
+          <AutoAdvance label="Next: a quick check that you're in" delay={2600} onDone={goOn} />
+        </div>
+      </StepFrame>
+    )
+  }
 
   if (stage === "code") {
     return (
@@ -43,6 +82,7 @@ export default function YouPage() {
               : "We've kept everything you told us. Pop in the code and we'll keep going."
             : "A quick code keeps your application yours. It also lets you come back on any device."
         }
+        showRep={false}
       >
         <CodeEntry mobile={app.mobile ?? ""} onVerified={onVerified} onChangeNumber={() => setStage("details")} />
       </StepFrame>
@@ -55,6 +95,7 @@ export default function YouPage() {
       totalSteps={totalSteps}
       title="First, who are you?"
       lede="Just enough to save your place."
+      showRep={false}
       cta="Send me a code to confirm"
       ctaDisabled={!complete}
       onCta={() => {

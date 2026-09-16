@@ -40,7 +40,7 @@ export function RepCard({ className, intro }: { className?: string; intro?: stri
           className="size-12 shrink-0 rounded-full object-cover"
         />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold">{line}</p>
+          <p className="text-pretty text-sm font-semibold leading-snug">{line}</p>
           <p className="truncate text-xs text-muted-foreground">{rep.role} · usually replies in minutes</p>
         </div>
         <div className="flex shrink-0 gap-1.5">

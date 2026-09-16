@@ -2,6 +2,7 @@
 
 import { FileText, Link2, Mic, Square } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
+import { AutoAdvance } from "@/components/apply/auto-advance"
 import { MockCamera } from "@/components/apply/mock-camera"
 import { PrimaryButton, TextLink } from "@/components/apply/primitives"
 import { Segmented } from "@/components/apply/segmented"
@@ -39,8 +40,10 @@ export function SupportPersonModule({ onComplete }: ModuleProps) {
 }
 
 export function CreditModule({ onComplete }: ModuleProps) {
+  const [hasEvidence, setHasEvidence] = useState<string>()
   const [read, setRead] = useState(false)
   const onResult = useCallback(() => setRead(true), [])
+
   if (read) {
     return (
       <div className="flex flex-col gap-5">
@@ -58,25 +61,42 @@ export function CreditModule({ onComplete }: ModuleProps) {
           </ul>
           <p className="text-sm text-muted-foreground">A course specialist confirms what counts. Nothing is promised yet.</p>
         </div>
-        <PrimaryButton onClick={() => onComplete("checking", { cv: "uploaded" })}>Send it for review</PrimaryButton>
+        <AutoAdvance label="Sent for review — moving on" onDone={() => onComplete("checking", { cv: "uploaded" })} />
+        <div className="flex justify-center">
+          <TextLink onClick={() => setRead(false)}>That&apos;s not right, try another</TextLink>
+        </div>
       </div>
     )
   }
+
   return (
-    <div className="flex flex-col gap-5">
-      <MockCamera
-        label="Photo of my CV"
-        uploadLabel="Upload CV (PDF or Word)"
-        hint="Any CV, even an old one. We read the work history."
-        onResult={onResult}
+    <div className="flex flex-col gap-6">
+      <Segmented
+        label="Do you have a CV, or any other evidence of work or study you've done?"
+        options={[
+          { value: "yes", label: "Yes, I've got something" },
+          { value: "no", label: "No, not really" },
+        ]}
+        value={hasEvidence}
+        onChange={(v) => {
+          setHasEvidence(v)
+          if (v === "no") onComplete("done", { cv: "skipped" })
+        }}
+        why={
+          <WhyWeAsk>
+            Recognition of prior learning can shorten your course and save you fees. A CV, a transcript, a reference
+            letter — anything that shows what you&apos;ve done. We only need enough to see what might count.
+          </WhyWeAsk>
+        }
       />
-      <WhyWeAsk>
-        Recognition of prior learning can shorten your course and save you fees. We only need enough to see what
-        might count.
-      </WhyWeAsk>
-      <div className="flex justify-center">
-        <TextLink onClick={() => onComplete("done", { cv: "skipped" })}>No credit to claim, skip this</TextLink>
-      </div>
+      {hasEvidence === "yes" && (
+        <MockCamera
+          label="Photo of my CV or evidence"
+          uploadLabel="Upload a file (PDF or Word)"
+          hint="Any CV, even an old one. We read the work and study history."
+          onResult={onResult}
+        />
+      )}
     </div>
   )
 }

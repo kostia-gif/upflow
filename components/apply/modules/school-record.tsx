@@ -2,6 +2,7 @@
 
 import { Check, Loader2, ShieldCheck } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
+import { AutoAdvance } from "@/components/apply/auto-advance"
 import { MockCamera } from "@/components/apply/mock-camera"
 import { PrimaryButton, TextLink } from "@/components/apply/primitives"
 import { TextField } from "@/components/apply/text-field"
@@ -49,12 +50,14 @@ export function SchoolRecordModule({ onComplete }: ModuleProps) {
               <p className="font-semibold text-warning">Sent for a look</p>
               <p className="mt-1">A real person reads these. Usually same day. You don&apos;t need to wait.</p>
             </div>
-            <PrimaryButton onClick={() => onComplete("sent", { method: "photo" })}>Next</PrimaryButton>
+            <AutoAdvance label="Sent — moving on" onDone={() => onComplete("sent", { method: "photo" })} />
           </>
         )}
-        <div className="flex justify-center">
-          <TextLink onClick={() => setView("lookup")}>Back</TextLink>
-        </div>
+        {!transcript && (
+          <div className="flex justify-center">
+            <TextLink onClick={() => setView("lookup")}>Back</TextLink>
+          </div>
+        )}
       </div>
     )
   }
@@ -124,9 +127,10 @@ export function SchoolRecordModule({ onComplete }: ModuleProps) {
               </span>
               <span className="font-mono tracking-wider">{found}</span>
             </div>
-            <PrimaryButton onClick={() => onComplete("done", au ? { usi: found, method: "lookup" } : { nsn: found, method: "lookup" })}>
-              Next
-            </PrimaryButton>
+            <AutoAdvance
+              label="Saved — moving on"
+              onDone={() => onComplete("done", au ? { usi: found, method: "lookup" } : { nsn: found, method: "lookup" })}
+            />
           </div>
         )}
       </div>
