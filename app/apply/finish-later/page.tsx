@@ -37,7 +37,7 @@ export default function FinishLaterPage() {
           : `${progress.done} of ${progress.total} done, about ${minutesLabel(minutesLeft)} left. Come back on any device — the link in your text opens right here.`
       }
       cta={saved ? "Back to the course" : "Set reminder"}
-      onCta={saved ? () => router.push("/") : save}
+      onCta={saved ? () => router.push("/course") : save}
       secondary={
         !saved ? (
           <button type="button" onClick={() => router.push("/apply/ready")} className="min-h-11 text-sm font-medium text-muted-foreground">

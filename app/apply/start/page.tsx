@@ -27,7 +27,7 @@ export default function StartPage() {
       cta="Start"
       ctaDisabled={!ready}
       onCta={() => router.push("/apply/you")}
-      secondary={<TextLink href="/">Not sure yet? Back to the course</TextLink>}
+        secondary={<TextLink href="/course">Not sure yet? Back to the course</TextLink>}
     >
       <div className="flex flex-col gap-6">
         <dl className="grid grid-cols-2 gap-3">

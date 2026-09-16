@@ -13,7 +13,8 @@ import type { BrandId } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
 const jumps = [
-  ["/", "Course page"],
+  ["/", "Intro"],
+  ["/course", "Course page"],
   ["/apply", "Apply"],
   ["/apply/received", "Received"],
   ["/apply/ready", "Get ready hub"],
@@ -43,7 +44,7 @@ export function DevToolbar() {
       router.push(`/apply?app=APP-1042&rep=${brands[dev.brand].defaultAdvisor}`)
     } else {
       dispatch({ type: "RESET" })
-      router.push("/")
+      router.push("/course")
       setOpen(false)
     }
   }
