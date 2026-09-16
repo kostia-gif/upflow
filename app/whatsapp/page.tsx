@@ -148,12 +148,12 @@ function Journey() {
           </div>
           <p className="text-pretty px-2 text-center text-xs leading-relaxed text-muted-foreground">{current.note}</p>
           <a
-            href={`/whatsapp/transcript?brand=${brand}`}
+            href={`/whatsapp/transcript?brand=${brand}&channel=${channel}`}
             download
             className="inline-flex items-center justify-center gap-1.5 self-center text-xs font-medium text-foreground underline-offset-4 hover:underline"
           >
             <Download className="size-3.5" aria-hidden="true" />
-            Download the full dialogue (WhatsApp + SMS, Markdown)
+            Download the full {current.label} dialogue (Markdown)
           </a>
         </div>
         <div className="h-[calc(100svh-3rem)] w-full max-w-[400px] overflow-hidden rounded-[2rem] border-[6px] border-foreground bg-foreground shadow-2xl sm:h-[800px]">
