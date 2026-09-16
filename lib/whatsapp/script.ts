@@ -2,11 +2,13 @@ import type { BrandConfig, CourseConfig, ModuleId, Rep } from "@/lib/types"
 
 export type Sender = "assistant" | "rep" | "me"
 
+export type Channel = "whatsapp" | "sms"
+
 export type Message =
   | { kind: "text"; from: Sender; text: string }
   | { kind: "system"; text: string }
   | { kind: "progress" }
-  | { kind: "attachment"; from: "me"; name: string; meta: string; image?: boolean }
+  | { kind: "attachment"; from: "me"; name: string; meta: string; image?: boolean; preview?: string }
   | { kind: "doc"; title: string; lines: string[] }
   | { kind: "signed"; from: "me"; name: string; image?: string }
   | { kind: "link"; title: string; body: string; href: string; cta: string }
@@ -21,9 +23,11 @@ export type Scene = {
   /** Continue straight into another scene once the messages have played. */
   auto?: string
   /** Open a bottom sheet after the messages; the sheet decides the next scene. */
-  sheet?: "upload" | "sign"
+  sheet?: "upload" | "id-upload" | "sign"
   /** Mark a module in the shared application state when this scene plays. */
   complete?: { module: ModuleId; status: "done" | "checking" | "sent"; data?: Record<string, string> }
+  /** Skip this module for the rest of the thread — the student has chosen to do it later. */
+  defer?: ModuleId
   remind?: string
   /** Storytelling beat this scene belongs to, for the explainer panel. */
   beat: number
@@ -48,7 +52,7 @@ function joinList(items: string[]) {
 }
 
 /** Modules the chat can finish, in the order the assistant offers them. */
-export const chatModules: ModuleId[] = ["money", "credit", "sign"]
+export const chatModules: ModuleId[] = ["identity", "money", "credit", "sign"]
 
 export function buildScript(ctx: ScriptCtx): Record<string, Scene> {
   const { firstName, brand, course, rep, campus, holdUntil, webviewHref, doneHref, remaining } = ctx
@@ -254,13 +258,72 @@ export function buildScript(ctx: ScriptCtx): Record<string, Scene> {
       }
     }),
     {
+      id: "identity",
+      beat: 3,
+      messages: [
+        {
+          kind: "text",
+          from: "assistant",
+          text: `One thing is still waiting from before: your photo ID. A passport, birth certificate or citizenship certificate — take a photo of it and I'll read the details, no typing.`,
+        },
+      ],
+      choices: [
+        { label: "Take a photo now", next: "identity-upload" },
+        { label: "I'll do it later", next: "identity-later" },
+      ],
+    },
+    {
+      id: "identity-upload",
+      beat: 3,
+      messages: [{ kind: "text", from: "assistant", text: "Lay it flat in good light with all four corners in frame, then send it here." }],
+      sheet: "id-upload",
+    },
+    {
+      id: "identity-read",
+      beat: 3,
+      complete: {
+        module: "identity",
+        status: "done",
+        data: {
+          method: "photo",
+          document: "Passport",
+          name: "Sarah Jane Bilkey",
+          dob: au ? "14 May 1991" : "14 May 2008",
+          citizenship: au ? "Australian citizen" : "New Zealand citizen",
+        },
+      },
+      messages: [
+        {
+          kind: "text",
+          from: "assistant",
+          text: `Read it — passport, Sarah Jane Bilkey, born ${au ? "14 May 1991" : "14 May 2008"}, ${
+            au ? "Australian" : "New Zealand"
+          } citizen. That matches what you told us, so you're verified. The photo isn't kept — only those details are.`,
+        },
+      ],
+      auto: "resume",
+    },
+    {
+      id: "identity-later",
+      beat: 3,
+      defer: "identity",
+      messages: [
+        {
+          kind: "text",
+          from: "assistant",
+          text: "No problem — it's the one thing we can't finish without, so I'll nudge you about it tomorrow. Let's do the rest.",
+        },
+      ],
+      auto: "resume",
+    },
+    {
       id: "money",
       beat: 3,
       messages: [
         {
           kind: "text",
           from: "assistant",
-          text: `First up: paying for it. Nothing to pay today — this just tells us how you're likely to cover the fees (${course.fee}). How are you thinking?`,
+          text: `Next: paying for it. Nothing to pay today — this just tells us how you're likely to cover the fees (${course.fee}). How are you thinking?`,
         },
       ],
       choices: [
@@ -447,6 +510,7 @@ export function buildScript(ctx: ScriptCtx): Record<string, Scene> {
 export function routeFreeText(text: string): string {
   const t = text.toLowerCase()
   if (/placement|practicum|hours|agency|agencies/.test(t)) return "q-placement"
+  if (/passport|photo id|licence|license|birth cert|citizenship|identity|\bid\b/.test(t)) return "identity"
   if (/fee|cost|price|pay|loan|money|afford|studylink|help/.test(t)) return "q-fees"
   if (/later|tomorrow|tonight|busy|next week|not now|remind/.test(t)) return "later"
   if (/human|person|someone|advisor|adviser|call|talk|speak|chat to|priya|matt|aroha|tane/.test(t)) return "human"

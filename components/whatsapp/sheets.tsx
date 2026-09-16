@@ -21,16 +21,45 @@ function SheetFrame({ title, onClose, children }: { title: string; onClose: () =
   )
 }
 
-export type Attachment = { name: string; meta: string; image?: boolean }
+export type Attachment = { name: string; meta: string; image?: boolean; preview?: string }
 
-export function UploadSheet({ onPick, onClose }: { onPick: (a: Attachment) => void; onClose: () => void }) {
-  const options: { icon: typeof Camera; label: string; hint: string; result: Attachment }[] = [
-    { icon: Camera, label: "Camera", hint: "Take a photo of a printed CV or certificate", result: { name: "IMG_2041.jpg", meta: "Photo · 2.1 MB", image: true } },
-    { icon: Images, label: "Photos", hint: "Choose from your camera roll", result: { name: "IMG_1987.jpg", meta: "Photo · 1.8 MB", image: true } },
-    { icon: FileText, label: "Document", hint: "PDF or Word from your files or Drive", result: { name: "Sarah_Bilkey_CV.pdf", meta: "PDF · 184 KB" } },
-  ]
+export type UploadPurpose = "cv" | "id"
+
+type UploadOption = { icon: typeof Camera; label: string; hint: string; result: Attachment }
+
+const uploadOptions: Record<UploadPurpose, { title: string; options: UploadOption[] }> = {
+  cv: {
+    title: "Send your CV or evidence",
+    options: [
+      { icon: Camera, label: "Camera", hint: "Take a photo of a printed CV or certificate", result: { name: "IMG_2041.jpg", meta: "Photo · 2.1 MB", image: true } },
+      { icon: Images, label: "Photos", hint: "Choose from your camera roll", result: { name: "IMG_1987.jpg", meta: "Photo · 1.8 MB", image: true } },
+      { icon: FileText, label: "Document", hint: "PDF or Word from your files or Drive", result: { name: "Sarah_Bilkey_CV.pdf", meta: "PDF · 184 KB" } },
+    ],
+  },
+  id: {
+    title: "Send a photo of your ID",
+    options: [
+      {
+        icon: Camera,
+        label: "Camera",
+        hint: "Photograph your passport or certificate",
+        result: { name: "IMG_2044.jpg", meta: "Photo · 2.4 MB", image: true, preview: "/images/whatsapp/passport-photo.png" },
+      },
+      {
+        icon: Images,
+        label: "Photos",
+        hint: "Pick one you've already taken",
+        result: { name: "IMG_1120.jpg", meta: "Photo · 2.2 MB", image: true, preview: "/images/whatsapp/passport-photo.png" },
+      },
+      { icon: FileText, label: "Document", hint: "A scan saved as PDF", result: { name: "Passport_scan.pdf", meta: "PDF · 1.1 MB" } },
+    ],
+  },
+}
+
+export function UploadSheet({ purpose = "cv", onPick, onClose }: { purpose?: UploadPurpose; onPick: (a: Attachment) => void; onClose: () => void }) {
+  const { title, options } = uploadOptions[purpose]
   return (
-    <SheetFrame title="Send your CV or evidence" onClose={onClose}>
+    <SheetFrame title={title} onClose={onClose}>
       <ul className="grid grid-cols-3 gap-3">
         {options.map(({ icon: Icon, label, hint, result }) => (
           <li key={label}>

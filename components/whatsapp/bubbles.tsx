@@ -164,6 +164,14 @@ export function Bubble({ item, brand, rep, modules, statuses }: BubbleProps) {
   }
 
   if (m.kind === "attachment") {
+    if (m.preview) {
+      return (
+        <Shell mine time={item.time} className="w-[72%] p-1 pb-1.5">
+          <Image src={m.preview} alt={m.name} width={480} height={360} className="aspect-[4/3] w-full rounded-md object-cover" />
+          <p className="px-1.5 pt-1 text-xs text-foreground/60">{m.meta}</p>
+        </Shell>
+      )
+    }
     return (
       <Shell mine time={item.time}>
         <div className="flex items-center gap-3 rounded-md bg-foreground/5 p-2 pr-3">

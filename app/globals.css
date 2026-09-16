@@ -45,6 +45,12 @@
   --color-wa-tick: var(--wa-tick);
   --color-wa-link: var(--wa-link);
   --color-wa-rep: var(--wa-rep);
+  --color-sms-bg: var(--sms-bg);
+  --color-sms-in: var(--sms-in);
+  --color-sms-out: var(--sms-out);
+  --color-sms-out-foreground: var(--sms-out-foreground);
+  --color-sms-bar: var(--sms-bar);
+  --color-sms-header: var(--sms-header);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -96,6 +102,13 @@
   --wa-tick: #53bdeb;
   --wa-link: #027eb5;
   --wa-rep: #d3436a;
+  /* Carrier-SMS look-alike palette for the channel toggle on the same journey. */
+  --sms-bg: #ffffff;
+  --sms-in: #e9e9eb;
+  --sms-out: #34c759;
+  --sms-out-foreground: #ffffff;
+  --sms-bar: #f6f6f6;
+  --sms-header: #f6f6f6;
 }
 
 @layer base {

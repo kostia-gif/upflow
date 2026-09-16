@@ -21,15 +21,17 @@ function WelcomeBackRedirect() {
     if (!hydrated) return
     const requested = params.get("brand")
     const brand = isBrandId(requested) ? requested : state.dev.brand
-    const viaWhatsApp = params.get("via") === "whatsapp"
+    const via = params.get("via")
+    const viaChannel = via === "whatsapp" ? "WhatsApp" : via === "sms" ? "your text message" : null
     const alreadyLoaded = state.app.brand === brand && !!state.app.submittedAt
 
-    // A link minted for a verified WhatsApp number signs the browser in silently — no code screen.
-    dispatch({ type: "SET_DEV", dev: { returning: true, returningVerified: viaWhatsApp } })
-    if (!(viaWhatsApp && alreadyLoaded)) dispatch({ type: "LOAD_APP", app: returningFixture(brand) })
-    if (viaWhatsApp) toast.success("Signed in from WhatsApp", { description: "Same application, picked up where you left it." })
-    router.replace(params.get("to") === "done" ? "/apply/done" : "/apply/ready")
-    // Deep-link entry: once storage is read, seed the returning fixture (unless WhatsApp progress already exists), then hand off to the hub.
+    // A link minted for a verified number signs the browser in silently — no code screen.
+    dispatch({ type: "SET_DEV", dev: { returning: true, returningVerified: !!viaChannel } })
+    if (!(viaChannel && alreadyLoaded)) dispatch({ type: "LOAD_APP", app: returningFixture(brand) })
+    if (viaChannel) toast.success(`Signed in from ${viaChannel}`, { description: "Same application, picked up where you left it." })
+    const to = params.get("to")
+    router.replace(to === "done" ? "/apply/done" : to && to !== "ready" ? `/apply/ready/${to}` : "/apply/ready")
+    // Deep-link entry: once storage is read, seed the returning fixture (unless chat progress already exists), then hand off to the hub or a module.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hydrated])
 

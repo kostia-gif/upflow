@@ -1,15 +1,17 @@
 "use client"
 
 import Image from "next/image"
-import { ArrowLeft, Mic, Paperclip, Phone, SendHorizontal, Video } from "lucide-react"
+import { ArrowLeft, ArrowUp, Camera, ChevronLeft, Mic, Paperclip, Phone, SendHorizontal, Video } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Bubble, type Rendered } from "@/components/whatsapp/bubbles"
 import { SignSheet, UploadSheet, type Attachment } from "@/components/whatsapp/sheets"
+import { SmsBubble } from "@/components/whatsapp/sms-bubble"
 import { useApplication } from "@/lib/application/context"
 import { isComplete } from "@/lib/application/reducer"
 import { moduleMeta } from "@/lib/config/modules"
 import { formatDayMonth } from "@/lib/format"
-import { buildScript, chatModules, routeFreeText, type Message, type Scene } from "@/lib/whatsapp/script"
+import type { ModuleId } from "@/lib/types"
+import { buildScript, chatModules, routeFreeText, type Channel, type Choice, type Message, type Scene } from "@/lib/whatsapp/script"
 import { cn } from "@/lib/utils"
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -18,7 +20,12 @@ function readTime(text: string) {
   return Math.min(1600, 500 + text.length * 9)
 }
 
-export function WhatsAppChat({ onBeat }: { onBeat?: (beat: number) => void }) {
+function numberedReplies(choices: Choice[]) {
+  return `Reply with a number:\n${choices.map((c, i) => `${i + 1} — ${c.label}`).join("\n")}`
+}
+
+export function WhatsAppChat({ channel = "whatsapp", onBeat }: { channel?: Channel; onBeat?: (beat: number) => void }) {
+  const sms = channel === "sms"
   const { app, brand, course, rep, modules, dispatch } = useApplication()
   const [log, setLog] = useState<Rendered[]>([])
   const [typing, setTyping] = useState<"assistant" | "rep" | null>(null)
@@ -27,6 +34,7 @@ export function WhatsAppChat({ onBeat }: { onBeat?: (beat: number) => void }) {
   const [draft, setDraft] = useState("")
   const runId = useRef(0)
   const nextId = useRef(1)
+  const deferred = useRef(new Set<ModuleId>())
   const scrollerRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   const started = useRef(false)
@@ -34,6 +42,7 @@ export function WhatsAppChat({ onBeat }: { onBeat?: (beat: number) => void }) {
   const firstName = app.firstName?.trim() || "there"
   const fullName = [app.firstName, app.lastName].filter(Boolean).join(" ") || firstName
   const campus = course.campuses.find((c) => c.id === app.campusId)?.name ?? course.campuses[0].name
+  const signHref = `/apply/welcome-back?brand=${brand.id}&via=${channel}&to=sign`
 
   const script = useMemo(() => {
     if (!rep) return {}
@@ -44,15 +53,15 @@ export function WhatsAppChat({ onBeat }: { onBeat?: (beat: number) => void }) {
       rep,
       campus,
       holdUntil: app.holdUntil ? formatDayMonth(app.holdUntil) : `${course.holdDays} days from now`,
-      webviewHref: `/apply/welcome-back?brand=${brand.id}&via=whatsapp`,
-      doneHref: `/apply/welcome-back?brand=${brand.id}&via=whatsapp&to=done`,
+      webviewHref: `/apply/welcome-back?brand=${brand.id}&via=${channel}`,
+      doneHref: `/apply/welcome-back?brand=${brand.id}&via=${channel}&to=done`,
       remaining: modules
         .filter((m) => !chatModules.includes(m) && !isComplete(app, m))
         .map((m) => moduleMeta[m].title),
     })
     // Built once per brand: the chat only ever completes its own modules, so the leftovers never change mid-thread.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [firstName, brand, course, rep, campus, app.holdUntil])
+  }, [firstName, brand, course, rep, campus, app.holdUntil, channel])
 
   const chatModuleList = useMemo(() => chatModules.filter((m) => modules.includes(m)), [modules])
 
@@ -78,10 +87,18 @@ export function WhatsAppChat({ onBeat }: { onBeat?: (beat: number) => void }) {
   const resolve = useCallback(
     (next: string) => {
       if (next !== "resume") return next
-      const pending = chatModuleList.find((m) => !isComplete(appRef.current, m))
+      const pending = chatModuleList.find((m) => !isComplete(appRef.current, m) && !deferred.current.has(m))
       return pending ?? "done"
     },
     [chatModuleList],
+  )
+
+  const offer = useCallback(
+    (list: Choice[] | undefined) => {
+      if (sms && list?.length) push({ kind: "text", from: "assistant", text: numberedReplies(list) })
+      setChoices(list)
+    },
+    [sms, push],
   )
 
   const play = useCallback(
@@ -101,12 +118,13 @@ export function WhatsAppChat({ onBeat }: { onBeat?: (beat: number) => void }) {
           dispatch({ type: "SET_FIELDS", fields: { funding: scene.complete.data.funding as "loan" | "self" | "other" } })
         }
       }
-      if (scene.remind) dispatch({ type: "SET_FIELDS", fields: { remindLabel: scene.remind, remindChannel: "whatsapp" } })
+      if (scene.defer) deferred.current.add(scene.defer)
+      if (scene.remind) dispatch({ type: "SET_FIELDS", fields: { remindLabel: scene.remind, remindChannel: channel } })
 
       for (const m of scene.messages) {
         if (!alive()) return
         if (m.kind === "text" && m.from !== "me") {
-          setTyping(m.from)
+          if (!sms) setTyping(m.from)
           await sleep(readTime(m.text))
           if (!alive()) return
           setTyping(null)
@@ -118,17 +136,23 @@ export function WhatsAppChat({ onBeat }: { onBeat?: (beat: number) => void }) {
       }
 
       if (!alive()) return
-      if (scene.sheet) {
+      if (scene.sheet === "sign" && sms) {
+        // SMS cannot carry a signature pad: hand the student a link and let them tell us when it's done.
+        await sleep(600)
+        if (!alive()) return
+        push({ kind: "link", title: "Sign in your browser", body: "About a minute, already signed in — no code to type.", href: signHref, cta: "Open" })
+        offer([{ label: "Done, I've signed it", next: "signed" }])
+      } else if (scene.sheet) {
         await sleep(600)
         if (alive()) setSheet(scene.sheet)
       } else if (scene.auto) {
         await sleep(900)
         if (alive()) void play(scene.auto)
       } else {
-        setChoices(scene.choices)
+        offer(scene.choices)
       }
     },
-    [script, resolve, dispatch, push, onBeat],
+    [script, resolve, dispatch, push, onBeat, sms, channel, signHref, offer],
   )
 
   useEffect(() => {
@@ -152,30 +176,41 @@ export function WhatsAppChat({ onBeat }: { onBeat?: (beat: number) => void }) {
     void play(next)
   }
 
+  function pick(c: Choice, index: number) {
+    say(sms ? String(index + 1) : c.label, c.next)
+  }
+
   function send() {
     const text = draft.trim()
     if (!text) return
     setDraft("")
-    say(text, routeFreeText(text))
+    const numbered = choices && /^\d$/.test(text) ? choices[Number(text) - 1] : undefined
+    say(text, numbered ? numbered.next : routeFreeText(text))
   }
 
   function dismissSheet() {
     const kind = sheet
     setSheet(undefined)
     if (kind === "upload") {
-      setChoices([
+      offer([
         { label: "Send my CV now", next: "credit-upload" },
         { label: "Skip this step", next: "credit-skip" },
       ])
+    } else if (kind === "id-upload") {
+      offer([
+        { label: "Take the photo now", next: "identity-upload" },
+        { label: "I'll do it later", next: "identity-later" },
+      ])
     } else if (kind === "sign") {
-      setChoices([{ label: "Open the agreement again", next: "sign" }])
+      offer([{ label: "Open the agreement again", next: "sign" }])
     }
   }
 
   function onUpload(a: Attachment) {
+    const kind = sheet
     setSheet(undefined)
     push({ kind: "attachment", from: "me", ...a })
-    void play("credit-read")
+    void play(kind === "id-upload" ? "identity-read" : "credit-read")
   }
 
   function onSigned(image?: string) {
@@ -186,32 +221,58 @@ export function WhatsAppChat({ onBeat }: { onBeat?: (beat: number) => void }) {
 
   if (!rep) return null
 
-  return (
-    <div className="relative flex h-full flex-col overflow-hidden bg-wa-bg">
-      <header className="flex items-center gap-2 bg-wa-header px-2 py-2 text-wa-header-foreground">
-        <ArrowLeft className="size-5" aria-hidden />
-        <div className="relative size-9 shrink-0 overflow-hidden rounded-full bg-background">
-          <Image src={brand.logo} alt="" fill sizes="36px" className="object-contain p-1.5" />
-        </div>
-        <div className="flex min-w-0 flex-1 flex-col leading-tight">
-          <span className="truncate text-[15px] font-semibold">{brand.shortName} · Your enrolment</span>
-          <span className="truncate text-xs opacity-80">
-            {brand.shortName} Assistant, {rep.name}, You
-          </span>
-        </div>
-        <Video className="size-5 opacity-90" aria-hidden />
-        <Phone className="ml-2 size-5 opacity-90" aria-hidden />
-      </header>
+  const shortcode = brand.country === "AU" ? "0480 012 345" : "4040"
 
-      <div ref={scrollerRef} className="wa-wallpaper flex-1 overflow-y-auto px-3 py-3" aria-live="polite">
+  return (
+    <div className={cn("relative flex h-full flex-col overflow-hidden", sms ? "bg-sms-bg" : "bg-wa-bg")}>
+      {sms ? (
+        <header className="flex items-center gap-1 border-b border-border/60 bg-sms-header px-2 pb-2 pt-3">
+          <ChevronLeft className="size-6 text-wa-link" aria-hidden />
+          <div className="flex flex-1 flex-col items-center gap-1">
+            <div className="relative size-11 overflow-hidden rounded-full bg-background shadow-sm">
+              <Image src={brand.logo} alt="" fill sizes="44px" className="object-contain p-2" />
+            </div>
+            <span className="text-xs font-medium leading-none">{brand.shortName}</span>
+            <span className="text-[10px] leading-none text-foreground/50">{shortcode}</span>
+          </div>
+          <span className="w-6" aria-hidden />
+        </header>
+      ) : (
+        <header className="flex items-center gap-2 bg-wa-header px-2 py-2 text-wa-header-foreground">
+          <ArrowLeft className="size-5" aria-hidden />
+          <div className="relative size-9 shrink-0 overflow-hidden rounded-full bg-background">
+            <Image src={brand.logo} alt="" fill sizes="36px" className="object-contain p-1.5" />
+          </div>
+          <div className="flex min-w-0 flex-1 flex-col leading-tight">
+            <span className="truncate text-[15px] font-semibold">{brand.shortName} · Your enrolment</span>
+            <span className="truncate text-xs opacity-80">
+              {brand.shortName} Assistant, {rep.name}, You
+            </span>
+          </div>
+          <Video className="size-5 opacity-90" aria-hidden />
+          <Phone className="ml-2 size-5 opacity-90" aria-hidden />
+        </header>
+      )}
+
+      <div ref={scrollerRef} className={cn("flex-1 overflow-y-auto px-3 py-3", !sms && "wa-wallpaper")} aria-live="polite">
         <div ref={contentRef} className="flex flex-col gap-1.5">
-          <span className="mb-1 self-center rounded-lg bg-wa-in/80 px-3 py-1 text-xs text-foreground/60 shadow-sm">Today</span>
-          <span className="mb-2 self-center rounded-lg bg-warning-soft px-3 py-1.5 text-center text-xs text-foreground/70 shadow-sm">
-            This business uses a secure service from Meta to manage this chat. Messages may be handled by an assistant.
-          </span>
-          {log.map((item) => (
-            <Bubble key={item.id} item={item} brand={brand} rep={rep} modules={modules} statuses={app.modules} />
-          ))}
+          {sms ? (
+            <span className="mb-2 self-center text-[11px] font-medium text-foreground/50">Text Message · Today</span>
+          ) : (
+            <>
+              <span className="mb-1 self-center rounded-lg bg-wa-in/80 px-3 py-1 text-xs text-foreground/60 shadow-sm">Today</span>
+              <span className="mb-2 self-center rounded-lg bg-warning-soft px-3 py-1.5 text-center text-xs text-foreground/70 shadow-sm">
+                This business uses a secure service from Meta to manage this chat. Messages may be handled by an assistant.
+              </span>
+            </>
+          )}
+          {log.map((item) =>
+            sms ? (
+              <SmsBubble key={item.id} item={item} brand={brand} rep={rep} modules={modules} statuses={app.modules} />
+            ) : (
+              <Bubble key={item.id} item={item} brand={brand} rep={rep} modules={modules} statuses={app.modules} />
+            ),
+          )}
           {typing && (
             <div className="flex items-end gap-1.5 self-start">
               {typing === "rep" ? (
@@ -226,34 +287,56 @@ export function WhatsAppChat({ onBeat }: { onBeat?: (beat: number) => void }) {
               </span>
             </div>
           )}
-          {choices && (
-            <div className="mt-1 flex flex-col gap-1.5 self-stretch pl-8 animate-fade-up">
-              {choices.map((c) => (
-                <button
-                  key={c.label}
-                  type="button"
-                  onClick={() => say(c.label, c.next)}
-                  className="rounded-lg bg-wa-in py-2.5 text-center text-[15px] font-medium text-wa-link shadow-[0_1px_0.5px_rgba(0,0,0,0.13)] hover:bg-background"
-                >
-                  {c.label}
-                </button>
-              ))}
-            </div>
-          )}
+          {choices &&
+            (sms ? (
+              <div className="mt-1 flex justify-end gap-2 animate-fade-up" aria-label="Quick replies">
+                {choices.map((c, i) => (
+                  <button
+                    key={c.label}
+                    type="button"
+                    onClick={() => pick(c, i)}
+                    aria-label={`Reply ${i + 1}: ${c.label}`}
+                    className="flex size-11 items-center justify-center rounded-full border border-sms-out text-lg font-semibold text-sms-out hover:bg-sms-out hover:text-sms-out-foreground"
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="mt-1 flex flex-col gap-1.5 self-stretch pl-8 animate-fade-up">
+                {choices.map((c, i) => (
+                  <button
+                    key={c.label}
+                    type="button"
+                    onClick={() => pick(c, i)}
+                    className="rounded-lg bg-wa-in py-2.5 text-center text-[15px] font-medium text-wa-link shadow-[0_1px_0.5px_rgba(0,0,0,0.13)] hover:bg-background"
+                  >
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+            ))}
         </div>
       </div>
 
       <form
-        className="flex items-center gap-2 bg-wa-bar px-2 py-2"
+        className={cn("flex items-center gap-2 px-2 py-2", sms ? "bg-sms-bar" : "bg-wa-bar")}
         onSubmit={(e) => {
           e.preventDefault()
           send()
         }}
       >
-        <div className="flex flex-1 items-center gap-2 rounded-full bg-wa-in px-3 py-2">
-          <button type="button" aria-label="Attach" onClick={() => setSheet("upload")} className="text-foreground/50">
-            <Paperclip className="size-5" aria-hidden />
+        {sms && (
+          <button type="button" aria-label="Camera" onClick={() => setSheet(sheet ?? "id-upload")} className="px-1 text-foreground/50">
+            <Camera className="size-6" aria-hidden />
           </button>
+        )}
+        <div className={cn("flex flex-1 items-center gap-2 rounded-full px-3 py-2", sms ? "border border-border bg-background py-1.5" : "bg-wa-in")}>
+          {!sms && (
+            <button type="button" aria-label="Attach" onClick={() => setSheet("upload")} className="text-foreground/50">
+              <Paperclip className="size-5" aria-hidden />
+            </button>
+          )}
           <input
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
@@ -263,22 +346,35 @@ export function WhatsAppChat({ onBeat }: { onBeat?: (beat: number) => void }) {
                 send()
               }
             }}
-            placeholder="Message"
+            placeholder={sms ? "Text Message · SMS" : "Message"}
             aria-label="Message"
             className="min-w-0 flex-1 bg-transparent text-[15px] outline-none placeholder:text-foreground/40"
           />
+          {sms && (
+            <button
+              type="submit"
+              aria-label="Send"
+              disabled={!draft.trim()}
+              className={cn("flex size-7 items-center justify-center rounded-full text-sms-out-foreground", draft.trim() ? "bg-sms-out" : "bg-foreground/20")}
+            >
+              <ArrowUp className="size-4" aria-hidden />
+            </button>
+          )}
         </div>
-        <button
-          type="submit"
-          aria-label={draft.trim() ? "Send" : "Record voice message"}
-          className={cn("flex size-11 items-center justify-center rounded-full bg-wa-accent text-wa-header-foreground transition-transform", draft.trim() && "scale-100")}
-        >
-          {draft.trim() ? <SendHorizontal className="size-5" aria-hidden /> : <Mic className="size-5" aria-hidden />}
-        </button>
+        {!sms && (
+          <button
+            type="submit"
+            aria-label={draft.trim() ? "Send" : "Record voice message"}
+            className="flex size-11 items-center justify-center rounded-full bg-wa-accent text-wa-header-foreground"
+          >
+            {draft.trim() ? <SendHorizontal className="size-5" aria-hidden /> : <Mic className="size-5" aria-hidden />}
+          </button>
+        )}
       </form>
 
-        {sheet === "upload" && <UploadSheet onPick={onUpload} onClose={dismissSheet} />}
-        {sheet === "sign" && <SignSheet name={fullName} onSigned={onSigned} onClose={dismissSheet} />}
+      {sheet === "upload" && <UploadSheet purpose="cv" onPick={onUpload} onClose={dismissSheet} />}
+      {sheet === "id-upload" && <UploadSheet purpose="id" onPick={onUpload} onClose={dismissSheet} />}
+      {sheet === "sign" && <SignSheet name={fullName} onSigned={onSigned} onClose={dismissSheet} />}
     </div>
   )
 }
