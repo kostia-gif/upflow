@@ -1,12 +1,12 @@
 "use client"
 
-import { ArrowLeft, Clock } from "lucide-react"
+import { ArrowLeft, BellRing, Clock } from "lucide-react"
 import Link from "next/link"
 import { notFound, useParams, useRouter } from "next/navigation"
 import { useCallback } from "react"
 import { toast } from "sonner"
 import { moduleComponents } from "@/components/apply/modules"
-import { Lede, Title } from "@/components/apply/primitives"
+import { Lede, TextLink, Title } from "@/components/apply/primitives"
 import { useApplication } from "@/lib/application/context"
 import { minutesLabel, moduleMeta } from "@/lib/config/modules"
 import type { ModuleId, ModuleStatus } from "@/lib/types"
@@ -32,6 +32,7 @@ export default function ModulePage() {
         done: `${meta.title} — done`,
         sent: `${meta.title} — sent`,
         checking: `${meta.title} — we're checking it`,
+        later: `${meta.title} — we'll remind you`,
         todo: meta.title,
       }
       toast.success(messages[status])
@@ -72,6 +73,14 @@ export default function ModulePage() {
         </p>
       )}
       <Component onComplete={onComplete} />
+      {id !== "sign" && (
+        <div className="flex flex-col items-center gap-1 border-t border-border pt-5 text-center">
+          <TextLink className="gap-1.5" onClick={() => onComplete("later")}>
+            <BellRing className="size-4" aria-hidden /> Don&apos;t have this handy? Remind me later
+          </TextLink>
+          <p className="text-xs text-muted-foreground">We&apos;ll text you a link. It won&apos;t hold anything up.</p>
+        </div>
+      )}
     </div>
   )
 }

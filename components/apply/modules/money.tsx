@@ -7,15 +7,38 @@ import { PrimaryButton, SecondaryButton } from "@/components/apply/primitives"
 import { Segmented } from "@/components/apply/segmented"
 import { TextField } from "@/components/apply/text-field"
 import { useApplication } from "@/lib/application/context"
+import type { FundingId } from "@/lib/types"
 import type { ModuleProps } from "./types"
 
 export function MoneyModule({ onComplete }: ModuleProps) {
-  const { app, brand, course } = useApplication()
+  const { app, brand, course, dispatch } = useApplication()
   const au = brand.country === "AU"
-  const funding = app.funding ?? "loan"
+  const funding = app.funding
   const [plan, setPlan] = useState<string>()
   const [payer, setPayer] = useState("")
   const [tfnLater, setTfnLater] = useState<string>()
+
+  if (!funding) {
+    return (
+      <div className="flex flex-col gap-6">
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          You said you weren&apos;t sure yet — totally fine. Pick the closest fit and we&apos;ll show you the one step
+          that matters. You can change it any time.
+        </p>
+        <OptionCards
+          label="How will you pay"
+          value={undefined}
+          onChange={(id) => dispatch({ type: "SET_FIELDS", fields: { funding: id as FundingId } })}
+          options={course.fundingOptions.map((o, i) => ({
+            id: o.id,
+            title: o.title,
+            description: o.description,
+            tag: i === 0 ? "Most students" : undefined,
+          }))}
+        />
+      </div>
+    )
+  }
 
   if (funding === "loan") {
     const steps = au
@@ -100,7 +123,7 @@ export function MoneyModule({ onComplete }: ModuleProps) {
           ]}
         />
         <PrimaryButton disabled={!plan} onClick={() => onComplete("done", { funding, plan: plan ?? "" })}>
-          Save
+          Next
         </PrimaryButton>
       </div>
     )
@@ -116,7 +139,7 @@ export function MoneyModule({ onComplete }: ModuleProps) {
         helper="We'll send the invoice to them, not you."
       />
       <PrimaryButton disabled={!payer.trim()} onClick={() => onComplete("done", { funding, payer })}>
-        Save
+        Next
       </PrimaryButton>
     </div>
   )

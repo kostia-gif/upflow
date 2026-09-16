@@ -67,7 +67,7 @@ export function IdentityModule({ onComplete }: ModuleProps) {
           disabled={!name.trim() || dob.trim().length < 8}
           onClick={() => onComplete("sent", { method: "manual", name, dob, citizenship })}
         >
-          Save for now
+          Next
         </PrimaryButton>
         <div className="flex justify-center">
           <TextLink onClick={() => setManual(false)}>Back to photo</TextLink>

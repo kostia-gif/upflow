@@ -171,7 +171,7 @@ export function statusOf(app: Application, m: ModuleId): ModuleStatus {
 
 export function isComplete(app: Application, m: ModuleId) {
   const s = statusOf(app, m)
-  return s === "done" || s === "sent" || s === "checking"
+  return s === "done" || s === "sent" || s === "checking" || s === "later"
 }
 
 export function nextTodoModule(app: Application, after?: ModuleId): ModuleId | undefined {

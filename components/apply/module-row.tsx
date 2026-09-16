@@ -48,11 +48,18 @@ export function StatusPill({ status, locked }: { status: ModuleStatus; locked?: 
   }
   const map: Record<ModuleStatus, string> = {
     todo: "bg-muted text-muted-foreground",
+    later: "bg-muted text-foreground/70",
     sent: "bg-warning-soft text-warning",
     checking: "bg-info-soft text-info animate-pulse-soft",
     done: "bg-success-soft text-success",
   }
-  const label: Record<ModuleStatus, string> = { todo: "To do", sent: "Sent", checking: "Checking", done: "Done" }
+  const label: Record<ModuleStatus, string> = {
+    todo: "To do",
+    later: "Reminder set",
+    sent: "Sent",
+    checking: "Checking",
+    done: "Done",
+  }
   return (
     <span className={cn("inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium", map[status])}>
       {status === "done" && <Check className="size-3" strokeWidth={3} aria-hidden />}

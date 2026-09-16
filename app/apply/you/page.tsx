@@ -49,16 +49,30 @@ export default function YouPage() {
     <StepFrame
       step={2}
       title="First, who are you?"
-      lede="Just enough to save your place. We'll text you a code to keep it yours."
-      cta="Send me a code"
+      lede="Just enough to save your place."
+      cta="Send me a code to confirm"
       ctaDisabled={!complete}
-      onCta={() => setStage("code")}
+      onCta={() => {
+        dispatch({ type: "SET_FIELDS", fields: { contactConsent: true } })
+        setStage("code")
+      }}
+      footer={
+        <p className="text-center text-xs leading-relaxed text-muted-foreground">
+          By continuing you&apos;re happy for {brand.shortName} to keep in touch by text or WhatsApp to support your
+          application. Reply STOP any time.{" "}
+          <a href="#" className="underline underline-offset-2" onClick={(e) => e.preventDefault()}>
+            Terms
+          </a>
+        </p>
+      }
     >
       <form
         className="flex flex-col gap-5"
         onSubmit={(e) => {
           e.preventDefault()
-          if (complete) setStage("code")
+          if (!complete) return
+          dispatch({ type: "SET_FIELDS", fields: { contactConsent: true } })
+          setStage("code")
         }}
       >
         <div className="grid grid-cols-2 gap-3">

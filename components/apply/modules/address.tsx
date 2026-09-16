@@ -47,7 +47,7 @@ export function AddressModule({ onComplete }: ModuleProps) {
           autoComplete="address-level2"
         />
         <PrimaryButton disabled={!line1.trim() || !suburb.trim()} onClick={() => onComplete("done", { line1, suburb })}>
-          Save address
+          Next
         </PrimaryButton>
       </div>
     )

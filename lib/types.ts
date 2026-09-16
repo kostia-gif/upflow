@@ -64,7 +64,9 @@ export type CourseConfig = {
 
 export type FundingId = "loan" | "self" | "other"
 
-export type ModuleStatus = "todo" | "sent" | "checking" | "done"
+export type ModuleStatus = "todo" | "later" | "sent" | "checking" | "done"
+
+export type MoneyHelp = "help" | "sorted" | "unsure"
 
 export type Rep = {
   id: string
@@ -93,6 +95,9 @@ export type Application = {
   eligibility: Record<string, string>
   residency?: "yes" | "no"
   funding?: FundingId
+  moneyHelp?: MoneyHelp
+  parentMobile?: string
+  contactConsent?: boolean
   submittedAt?: string
   holdUntil?: string
   modules: Partial<Record<ModuleId, ModuleStatus>>

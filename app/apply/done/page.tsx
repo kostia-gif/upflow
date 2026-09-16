@@ -13,7 +13,9 @@ export default function DonePage() {
   const { app, brand, course, modules } = useApplication()
   const campus = course.campuses.find((c) => c.id === app.campusId)
   const intake = course.intakes.find((i) => i.id === app.intakeId)
-  const pending = modules.filter((m) => app.modules[m] === "checking" || app.modules[m] === "sent")
+  const pending = modules.filter(
+    (m) => app.modules[m] === "checking" || app.modules[m] === "sent" || app.modules[m] === "later",
+  )
   const signed = isComplete(app, "sign")
 
   const items = [
@@ -53,11 +55,16 @@ export default function DonePage() {
           <ul className="flex flex-col gap-1">
             {pending.map((m) => (
               <li key={m}>
-                {moduleMeta[m].title} — {app.modules[m] === "checking" ? "being checked" : "sent, awaiting a look"}
+                {moduleMeta[m].title} —{" "}
+                {app.modules[m] === "checking"
+                  ? "being checked"
+                  : app.modules[m] === "later"
+                    ? "we'll remind you to send it"
+                    : "sent, awaiting a look"}
               </li>
             ))}
           </ul>
-          <p className="text-muted-foreground">You don&apos;t need to do anything. We&apos;ll text if we need more.</p>
+          <p className="text-muted-foreground">Nothing to do right now. We&apos;ll text when it&apos;s time.</p>
         </div>
       )}
 

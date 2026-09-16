@@ -32,7 +32,7 @@ export function SupportPersonModule({ onComplete }: ModuleProps) {
         share your results with them.
       </WhyWeAsk>
       <PrimaryButton disabled={!ok} onClick={() => onComplete("done", { name, relationship: relationship ?? "", phone })}>
-        Save
+        Next
       </PrimaryButton>
     </div>
   )
@@ -144,7 +144,7 @@ export function StatementModule({ onComplete }: ModuleProps) {
         There is no wrong answer.
       </WhyWeAsk>
       <PrimaryButton disabled={words < 30} onClick={() => onComplete("done", { statement: text })}>
-        Save
+        Next
       </PrimaryButton>
     </div>
   )
@@ -170,7 +170,7 @@ export function PortfolioModule({ onComplete }: ModuleProps) {
         <p className="rounded-2xl bg-success-soft p-3 text-sm text-success">3 images added.</p>
       )}
       <PrimaryButton disabled={!link.trim() && !uploaded} onClick={() => onComplete("done", { link, uploaded: String(uploaded) })}>
-        Save
+        Next
       </PrimaryButton>
       <div className="flex justify-center">
         <TextLink onClick={() => onComplete("done", { skipped: "true" })}>
@@ -206,7 +206,7 @@ export function PlacementCheckModule({ onComplete }: ModuleProps) {
         </p>
       )}
       <PrimaryButton disabled={!done} onClick={() => onComplete("done", a)}>
-        Save
+        Next
       </PrimaryButton>
     </div>
   )
@@ -223,7 +223,7 @@ export function KitModule({ onComplete }: ModuleProps) {
       <Segmented label="Shoe size" options={["5", "6", "7", "8", "9", "10", "11", "12"]} value={shoe} onChange={setShoe} />
       <p className="text-sm text-muted-foreground">Your kit is included in your fees and waits for you on day one.</p>
       <PrimaryButton disabled={!jacket || !shoe} onClick={() => onComplete("done", { jacket: jacket ?? "", shoe: shoe ?? "" })}>
-        Save
+        Next
       </PrimaryButton>
     </div>
   )

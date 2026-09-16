@@ -75,7 +75,7 @@ export function GovernmentModule({ onComplete }: ModuleProps) {
         ),
       )}
       <PrimaryButton disabled={!complete} onClick={() => onComplete("done", answers)}>
-        Save
+        Next
       </PrimaryButton>
     </div>
   )
