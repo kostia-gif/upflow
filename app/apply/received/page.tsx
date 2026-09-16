@@ -24,11 +24,13 @@ export default function ReceivedPage() {
     <div className="flex flex-col">
       <div className="flex flex-col gap-6 px-5 pb-6 pt-6">
         <div className="flex flex-col gap-3">
-          <Eyebrow>Application received</Eyebrow>
-          <Title>{app.firstName ? `${app.firstName}, you're in the queue.` : "You're in the queue."}</Title>
+          <Eyebrow>Your place is on hold</Eyebrow>
+          <Title>
+            {app.firstName ? `${app.firstName}, we've got a place with your name on it.` : "We've got a place with your name on it."}
+          </Title>
           <Lede>
-            We&apos;ve texted a confirmation to {app.mobile || "your mobile"}. Nothing else to do today unless you want
-            to.
+            We&apos;ve texted a confirmation to {app.mobile || "your mobile"}. A few quick steps left to lock it in
+            properly — let&apos;s finish those now and get you fully confirmed.
           </Lede>
         </div>
 
@@ -38,14 +40,14 @@ export default function ReceivedPage() {
           <CalendarClock className="mt-0.5 size-5 shrink-0" aria-hidden />
           <div className="flex flex-col gap-1">
             <p className="text-sm font-semibold">
-              {campus?.placesLeft === 0 ? "You're first in line" : "We're holding your place"}
+              {campus?.placesLeft === 0 ? "You're first in line" : "Held for you, not yet confirmed"}
             </p>
             <p className="text-sm leading-relaxed opacity-90">
               {campus?.placesLeft === 0
                 ? `${campus.name} is full for ${intake?.label ?? "this intake"}. You're on the list and we'll text you the moment a spot opens.`
-                : `${campus?.name ?? "Your campus"} · ${intake?.label ?? "your start date"}. Held until ${
+                : `${campus?.name ?? "Your campus"} · ${intake?.label ?? "your start date"}. We're holding it until ${
                     app.holdUntil ? formatDayMonth(app.holdUntil) : "next week"
-                  } while you finish getting ready.`}
+                  } — finish the steps below to confirm it's yours.`}
             </p>
           </div>
         </div>
@@ -86,11 +88,12 @@ export default function ReceivedPage() {
 
         <section className="flex flex-col gap-3">
           <div className="flex items-baseline justify-between">
-            <h2 className="font-heading text-xl font-semibold">Next: get ready</h2>
+            <h2 className="font-heading text-xl font-semibold">Finish up, and it&apos;s confirmed</h2>
             <span className="text-sm text-muted-foreground">about {totalMin} min total</span>
           </div>
           <p className="text-sm leading-relaxed text-muted-foreground">
-            Small steps, each under a couple of minutes. Do them now, or we&apos;ll nudge you tomorrow.
+            This is the last stretch — small steps, each under a couple of minutes, and then your place is fully
+            yours. Do them now, or we&apos;ll nudge you tomorrow.
           </p>
           <ul className="flex flex-col gap-2">
             {modules.slice(0, 4).map((m) => (
@@ -118,9 +121,11 @@ export default function ReceivedPage() {
       </div>
 
       <div className="sticky bottom-0 flex flex-col gap-2 border-t border-border bg-background/95 px-5 pb-safe pt-4 backdrop-blur sm:rounded-b-3xl">
-        <PrimaryButton onClick={() => router.push("/apply/ready")}>Get ready now · {totalMin} min</PrimaryButton>
+        <PrimaryButton onClick={() => router.push("/apply/ready")}>
+          Finish &amp; confirm my place · {totalMin} min
+        </PrimaryButton>
         <div className="flex justify-center">
-          <TextLink href="/apply/finish-later">I&apos;ll do it later</TextLink>
+          <TextLink href="/apply/finish-later">I&apos;ll finish this later</TextLink>
         </div>
       </div>
     </div>
