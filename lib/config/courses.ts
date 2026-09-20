@@ -37,6 +37,7 @@ export const courses: CourseConfig[] = [
       },
     ],
     holdDays: 7,
+    applyEstimate: "5–12 minutes",
     extraModules: ["credit", "statement", "placement-check"],
     fundingOptions: [
       {

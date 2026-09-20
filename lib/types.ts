@@ -57,6 +57,8 @@ export type CourseConfig = {
   duration: string
   eligibilityQuestions: EligibilityQuestion[]
   holdDays: number
+  /** Friendly time range shown before applying, overriding the computed single figure. */
+  applyEstimate?: string
   extraModules: ModuleId[]
   fundingOptions: { id: FundingId; title: string; description: string }[]
   orientation: string
