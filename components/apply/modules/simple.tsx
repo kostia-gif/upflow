@@ -1,16 +1,15 @@
 "use client"
 
-import { FileText, Link2, Mic, Square } from "lucide-react"
-import { useCallback, useEffect, useState } from "react"
+import { FileText, Link2, Mic } from "lucide-react"
+import { useCallback, useState } from "react"
 import { AutoAdvance } from "@/components/apply/auto-advance"
 import { MockCamera } from "@/components/apply/mock-camera"
-import { PrimaryButton, TextLink } from "@/components/apply/primitives"
+import { PrimaryButton, SecondaryButton, TextLink } from "@/components/apply/primitives"
 import { Segmented } from "@/components/apply/segmented"
 import { TextField } from "@/components/apply/text-field"
 import { WhyWeAsk } from "@/components/apply/why-we-ask"
 import { useApplication } from "@/lib/application/context"
-import { isValidMobile, wordCount } from "@/lib/format"
-import { cn } from "@/lib/utils"
+import { isValidMobile } from "@/lib/format"
 import type { ModuleProps } from "./types"
 
 export function SupportPersonModule({ onComplete }: ModuleProps) {
@@ -101,71 +100,116 @@ export function CreditModule({ onComplete }: ModuleProps) {
   )
 }
 
+const STATEMENT_QUESTIONS = [
+  {
+    id: "draw",
+    label: "What draws you to counselling?",
+    placeholder: "A sentence is plenty.",
+    sample: "Supporting people through hard times is what I keep coming back to.",
+  },
+  {
+    id: "moment",
+    label: "Tell us about a time you supported someone.",
+    placeholder: "Just a sentence or two.",
+    sample: "I helped a colleague through burnout, and it changed how I listen.",
+  },
+  {
+    id: "future",
+    label: "Where do you want to be in five years?",
+    placeholder: "A sentence is plenty.",
+    sample: "Working as a registered counsellor in community health.",
+  },
+]
+
 export function StatementModule({ onComplete }: ModuleProps) {
-  const [text, setText] = useState("")
-  const [recording, setRecording] = useState(false)
-  const [seconds, setSeconds] = useState(0)
-  const words = wordCount(text)
+  const [step, setStep] = useState(0)
+  const [answers, setAnswers] = useState<Record<string, string>>({})
+  const [review, setReview] = useState(false)
 
-  useEffect(() => {
-    if (!recording) return
-    const t = setInterval(() => setSeconds((s) => s + 1), 1000)
-    return () => clearInterval(t)
-  }, [recording])
+  const q = STATEMENT_QUESTIONS[step]
+  const answer = answers[q.id] ?? ""
+  const ready = answer.trim().length >= 10
+  const isLast = step === STATEMENT_QUESTIONS.length - 1
 
-  function stop() {
-    setRecording(false)
-    setText(
-      (t) =>
-        (t ? t + " " : "") +
-        "I've spent the last three years working alongside young people who were carrying more than they should have to, and the moments that stayed with me were the ones where someone finally felt heard. I want to do that properly, with the training behind it. Counselling feels less like a career change and more like the work I've been circling for years.",
+  if (review) {
+    return (
+      <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-4 rounded-2xl bg-success-soft p-4">
+          <p className="text-sm font-semibold text-success">Your statement, in your words</p>
+          <dl className="flex flex-col gap-3 text-sm">
+            {STATEMENT_QUESTIONS.map((qq) => (
+              <div key={qq.id} className="flex flex-col gap-0.5">
+                <dt className="text-muted-foreground">{qq.label}</dt>
+                <dd className="leading-relaxed">{answers[qq.id]}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+        <PrimaryButton
+          onClick={() =>
+            onComplete("done", {
+              method: "three-questions",
+              statement: STATEMENT_QUESTIONS.map((qq) => answers[qq.id]).join(" "),
+            })
+          }
+        >
+          Looks good — submit
+        </PrimaryButton>
+        <div className="flex justify-center">
+          <TextLink
+            onClick={() => {
+              setReview(false)
+              setStep(0)
+            }}
+          >
+            Edit my answers
+          </TextLink>
+        </div>
+      </div>
     )
-    setSeconds(0)
   }
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="statement" className="text-sm font-medium">
-          Why counselling, why now?
+      <div className="flex flex-col gap-2">
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-brand">
+          Question {step + 1} of {STATEMENT_QUESTIONS.length}
+        </p>
+        <label htmlFor="statement-answer" className="text-lg font-medium leading-snug">
+          {q.label}
         </label>
         <textarea
-          id="statement"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          rows={7}
-          placeholder="Plain words are best. This isn't marked for style."
+          id="statement-answer"
+          value={answer}
+          onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))}
+          rows={3}
+          placeholder={q.placeholder}
           className="w-full rounded-2xl border border-input bg-background p-4 text-base leading-relaxed placeholder:text-muted-foreground/70 focus-visible:border-brand focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand/20"
         />
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <span className={cn(words >= 60 && "text-success")}>{words} words · aim for 60 to 300</span>
-        </div>
       </div>
       <button
         type="button"
-        onClick={() => (recording ? stop() : setRecording(true))}
-        className={cn(
-          "flex h-14 items-center justify-center gap-2 rounded-2xl border-2 text-base font-semibold",
-          recording ? "border-destructive bg-destructive/10 text-destructive" : "border-brand/20 text-brand",
-        )}
+        onClick={() => setAnswers((a) => ({ ...a, [q.id]: q.sample }))}
+        className="flex h-12 items-center justify-center gap-2 rounded-2xl border-2 border-brand/20 text-sm font-semibold text-brand hover:bg-brand-soft/60"
       >
-        {recording ? (
-          <>
-            <Square className="size-4 fill-current" aria-hidden /> Stop · {seconds}s
-          </>
-        ) : (
-          <>
-            <Mic className="size-5" aria-hidden /> Say it instead — we&apos;ll write it up
-          </>
-        )}
+        <Mic className="size-4" aria-hidden /> Say it instead — we&apos;ll write it up
       </button>
-      <WhyWeAsk>
-        Your specialist reads this to understand what you want from the course, and it shapes your placement matching.
-        There is no wrong answer.
-      </WhyWeAsk>
-      <PrimaryButton disabled={words < 30} onClick={() => onComplete("done", { statement: text })}>
-        Next
+      <PrimaryButton disabled={!ready} onClick={() => (isLast ? setReview(true) : setStep(step + 1))}>
+        {isLast ? "Review" : "Next"}
       </PrimaryButton>
+      {step === 0 ? (
+        <SecondaryButton onClick={() => onComplete("later", { method: "three-questions" })}>
+          I&apos;ll do this later
+        </SecondaryButton>
+      ) : (
+        <div className="flex justify-center">
+          <TextLink onClick={() => setStep(step - 1)}>Back</TextLink>
+        </div>
+      )}
+      <WhyWeAsk>
+        Three short answers, not an essay. Your specialist reads them to understand what you want from the course, and
+        they shape your placement matching. There is no wrong answer.
+      </WhyWeAsk>
     </div>
   )
 }

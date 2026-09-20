@@ -34,8 +34,8 @@ export default function StartPage() {
       }
       lede={
         spoken
-          ? `${rep.name} set this up from your chat — check the details and hit Start. About ${totalMinutes} minutes all in.`
-          : `About ${totalMinutes} minutes if you do it in one go — but you don't have to. We save as you go.`
+          ? `${rep.name} set this up from your chat — check the details and hit Start. About ${course.applyEstimate ?? `${totalMinutes} minutes`} all in.`
+          : `About ${course.applyEstimate ?? `${totalMinutes} minutes`} if you do it in one go — but you don't have to. We save as you go.`
       }
       showRep={false}
       cta="Start"
