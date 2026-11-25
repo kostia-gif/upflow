@@ -3,7 +3,6 @@
 import { useRouter, useSearchParams } from "next/navigation"
 import { BellRing, CalendarClock, MessageSquare } from "lucide-react"
 import { Suspense, useState } from "react"
-import { toast } from "sonner"
 import { OptionCards } from "@/components/apply/option-cards"
 import { Segmented } from "@/components/apply/segmented"
 import { StepFrame } from "@/components/apply/step-frame"
@@ -51,22 +50,30 @@ function RemindMe() {
     if (skipping) {
       dispatch({ type: "SET_MODULE_STATUS", module: skipping, status: "later" })
       dispatch({ type: "SET_LAST_MODULE", module: skipping })
-      toast.success(`${moduleMeta[skipping].title} — we'll ${channelName} you ${label}`)
-      const next = nextModule(skipping)
-      router.push(next ? `/apply/ready/${next}` : "/apply/ready")
-      return
     }
     setSaved(true)
-    toast.success(`Reminder set — ${label}`)
   }
 
+  const nextAfterSkip = skipping ? nextModule(skipping) : undefined
+  const savedCta = skipping
+    ? nextAfterSkip
+      ? `Next: ${moduleMeta[nextAfterSkip].title}`
+      : "See all my steps"
+    : "Back to the course"
+  const onSavedCta = () =>
+    router.push(skipping ? (nextAfterSkip ? `/apply/ready/${nextAfterSkip}` : "/apply/ready") : "/course")
+
   const title = saved
-    ? "Sorted. See you then."
+    ? skipping
+      ? `"${moduleMeta[skipping].title}" is set aside.`
+      : "Sorted. See you then."
     : skipping
       ? `Skip "${moduleMeta[skipping].title}" for now?`
       : "Pause here?"
   const lede = saved
-    ? `We'll ${channelName} ${app.mobile || "you"} ${label} with a link straight back to where you left off.`
+    ? skipping
+      ? `We'll ${channelName} ${app.mobile || "you"} ${label} with a link straight back to this step. Carry on with the rest whenever you're ready.`
+      : `We'll ${channelName} ${app.mobile || "you"} ${label} with a link straight back to where you left off.`
     : skipping
       ? "No problem — we'll remind you to send it, and you carry straight on with the next step."
       : `${progress.done} of ${progress.total} done, ${minutesLabel(minutesLeft).toLowerCase()}. Everything's saved. Come back on any device — the link in your message opens right here.`
@@ -76,9 +83,9 @@ function RemindMe() {
       showRep={false}
       title={title}
       lede={lede}
-      cta={saved ? "Back to the course" : skipping ? "Skip and keep going" : "Set reminder"}
+      cta={saved ? savedCta : skipping ? "Skip and keep going" : "Set reminder"}
       ctaDisabled={!saved && !canSave}
-      onCta={saved ? () => router.push("/course") : save}
+      onCta={saved ? onSavedCta : save}
       secondary={
         !saved ? (
           <button type="button" onClick={() => router.back()} className="min-h-11 text-sm font-medium text-muted-foreground">

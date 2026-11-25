@@ -1,12 +1,11 @@
 "use client"
 
-import { ArrowLeft, BellRing, CalendarClock, Clock } from "lucide-react"
+import { ArrowLeft, BellRing, CalendarClock, CheckCircle2, Clock } from "lucide-react"
 import Link from "next/link"
 import { notFound, useParams, useRouter } from "next/navigation"
-import { useCallback } from "react"
-import { toast } from "sonner"
+import { useCallback, useState } from "react"
 import { moduleComponents } from "@/components/apply/modules"
-import { Lede, TextLink, Title } from "@/components/apply/primitives"
+import { Lede, PrimaryButton, TextLink, Title } from "@/components/apply/primitives"
 import { ProgressSegments, WhatsAppPopOut } from "@/components/apply/step-frame"
 import { useApplication } from "@/lib/application/context"
 import { minutesLabel, moduleMeta } from "@/lib/config/modules"
@@ -18,6 +17,8 @@ export default function ModulePage() {
   const router = useRouter()
   const { app, brand, rep, modules, progress, applySteps, totalSteps, nextModule, dispatch } = useApplication()
   const id = params.module as ModuleId
+  const [finishedState, setFinishedState] = useState<{ id: ModuleId; status: ModuleStatus } | null>(null)
+  const finished = finishedState?.id === id ? finishedState.status : null
 
   if (!modules.includes(id)) notFound()
 
@@ -33,23 +34,59 @@ export default function ModulePage() {
       dispatch({ type: "SET_MODULE_STATUS", module: id, status })
       if (data) dispatch({ type: "SET_MODULE_DATA", module: id, data })
       dispatch({ type: "SET_LAST_MODULE", module: id })
-      const messages: Record<ModuleStatus, string> = {
-        done: `${meta.title} — done`,
-        sent: `${meta.title} — sent`,
-        checking: `${meta.title} — we're checking it`,
-        later: `${meta.title} — we'll remind you`,
-        todo: meta.title,
-      }
-      toast.success(messages[status])
       if (id === "sign") {
         router.push("/apply/done")
         return
       }
-      const next = nextModule(id)
-      router.push(next ? `/apply/ready/${next}` : "/apply/ready")
+      setFinishedState({ id, status })
+      window.scrollTo({ top: 0 })
     },
-    [dispatch, id, meta.title, nextModule, router],
+    [dispatch, id, router],
   )
+
+  if (finished) {
+    const next = nextModule(id)
+    const confirmations: Record<ModuleStatus, { title: string; body: string }> = {
+      done: { title: `${meta.title} — done`, body: "Saved to your application." },
+      sent: { title: `${meta.title} — sent`, body: "It's with us. Nothing more to do here." },
+      checking: {
+        title: `${meta.title} — received`,
+        body: "A course specialist will check it. You don't need to wait — carry on with the next step.",
+      },
+      later: { title: `${meta.title} — set aside`, body: "We'll remind you to send it. Nothing else is held up." },
+      todo: { title: meta.title, body: "" },
+    }
+    const c = confirmations[finished]
+    return (
+      <div className="flex flex-col gap-6 px-5 pb-10 pt-4">
+        <div className="flex items-center gap-3">
+          <div className="flex-1">
+            <ProgressSegments step={applySteps + index + 1} total={totalSteps} />
+          </div>
+          <WhatsAppPopOut />
+        </div>
+        <div role="status" className="flex flex-col items-start gap-4 rounded-3xl bg-success-soft p-6 animate-fade-up">
+          <span className="flex size-12 items-center justify-center rounded-full bg-background text-success">
+            <CheckCircle2 className="size-6" aria-hidden />
+          </span>
+          <div className="flex flex-col gap-2">
+            <Title>{c.title}</Title>
+            <Lede>{c.body}</Lede>
+          </div>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          {progress.done} of {progress.total} steps done.
+          {next ? ` Next up: ${moduleMeta[next].title.toLowerCase()}.` : " That's everything for now."}
+        </p>
+        <PrimaryButton onClick={() => router.push(next ? `/apply/ready/${next}` : "/apply/ready")}>
+          {next ? (next === "sign" ? "Review and sign" : `Next: ${moduleMeta[next].title}`) : "See all my steps"}
+        </PrimaryButton>
+        <div className="flex justify-center">
+          <TextLink href="/apply/ready">See all my steps</TextLink>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col gap-6 px-5 pb-10 pt-4">
