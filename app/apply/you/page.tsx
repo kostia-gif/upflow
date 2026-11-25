@@ -1,9 +1,9 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useCallback, useState } from "react"
+import { useState } from "react"
 import { Clock, MessageCircle, Save } from "lucide-react"
-import { CodeEntry } from "@/components/apply/code-entry"
+import { Checkbox } from "@/components/ui/checkbox"
 import { RepCard } from "@/components/apply/rep-card"
 import { StepFrame } from "@/components/apply/step-frame"
 import { TextField } from "@/components/apply/text-field"
@@ -15,10 +15,8 @@ export default function YouPage() {
   const router = useRouter()
   const { app, brand, rep, totalSteps, dispatch } = useApplication()
   const spoken = app.repAssigned === "spoken" && !!rep
-  const prefilled = !!(app.firstName && app.lastName && app.mobile && app.email)
-  const [stage, setStage] = useState<"details" | "code" | "welcome">(
-    prefilled && !app.mobileVerified ? "code" : "details",
-  )
+  const returning = app.entryPath === "A"
+  const [stage, setStage] = useState<"details" | "welcome">("details")
 
   const set = (k: "firstName" | "lastName" | "mobile" | "email") => (v: string) =>
     dispatch({ type: "SET_FIELDS", fields: { [k]: v } })
@@ -26,11 +24,11 @@ export default function YouPage() {
   const complete =
     !!app.firstName?.trim() && !!app.lastName?.trim() && isValidMobile(app.mobile ?? "") && isValidEmail(app.email ?? "")
 
-  const onVerified = useCallback(() => {
-    dispatch({ type: "SET_FIELDS", fields: { mobileVerified: true } })
+  function proceed() {
+    if (!complete) return
     dispatch({ type: "ASSIGN_ADVISOR" })
     setStage("welcome")
-  }, [dispatch])
+  }
 
   if (stage === "welcome") {
     const firstName = app.firstName?.trim() || "there"
@@ -50,7 +48,7 @@ export default function YouPage() {
       {
         icon: Clock,
         title: "Skip what you don't have on you",
-        body: "Missing a document? Skip that step and we'll text you when it's a good time to add it.",
+        body: "Missing a document? Skip that step and add it later — nothing holds up the rest.",
       },
     ]
     return (
@@ -58,13 +56,15 @@ export default function YouPage() {
         step={2}
         totalSteps={totalSteps}
         back={false}
-        eyebrow="You're verified"
-        title={`Welcome back, ${firstName}.`}
+        eyebrow="Your place is saved"
+        title={returning ? `Welcome back, ${firstName}.` : `Nice to meet you, ${firstName}.`}
         lede={
           rep
             ? spoken
               ? `${rep.name} has been looking after you since your chat, and stays with you right through to your first day.`
-              : `Good to hear from you again. ${rep.name}, who you spoke to when you enquired, is your ${rep.role.toLowerCase()} from here on — one person, right through to your first day.`
+              : returning
+                ? `Good to hear from you again. ${rep.name}, who you spoke to when you enquired, is your ${rep.role.toLowerCase()} from here on — one person, right through to your first day.`
+                : `${rep.name} is your ${rep.role.toLowerCase()} from here on — one person, right through to your first day.`
             : "Your application is yours now. Here's how we make the rest easy."
         }
         showRep={false}
@@ -77,7 +77,7 @@ export default function YouPage() {
               rep
                 ? spoken
                   ? `Welcome back, ${firstName} — I've kept your details, nothing to re-type.`
-                  : `Welcome back, ${firstName}! Great to see you taking the next step. Ask me anything, any time.`
+                  : `Hi ${firstName}! Great to see you taking the next step. Ask me anything, any time.`
                 : undefined
             }
           />
@@ -99,44 +99,26 @@ export default function YouPage() {
     )
   }
 
-  if (stage === "code") {
-    return (
-      <StepFrame
-        step={2}
-        totalSteps={totalSteps}
-        eyebrow={app.entryPath === "A" ? "Quick check" : undefined}
-        title={app.entryPath === "A" ? `Just confirming it's you, ${app.firstName}.` : "Check your phone."}
-        lede={
-          app.entryPath === "A"
-            ? spoken
-              ? `${rep.name} kept everything you told them, so there's nothing to re-type. Pop in the code and we'll keep going.`
-              : "We've kept everything you told us. Pop in the code and we'll keep going."
-            : "A quick code keeps your application yours. It also lets you come back on any device."
-        }
-        showRep={false}
-      >
-        <CodeEntry mobile={app.mobile ?? ""} onVerified={onVerified} onChangeNumber={() => setStage("details")} />
-      </StepFrame>
-    )
-  }
-
   return (
     <StepFrame
       step={2}
       totalSteps={totalSteps}
-      title="First, who are you?"
-      lede="Just enough to save your place."
+      eyebrow={returning ? "Quick check" : undefined}
+      title={returning && app.firstName ? `Just checking these are right, ${app.firstName}.` : "First, who are you?"}
+      lede={
+        returning
+          ? spoken
+            ? `${rep.name} kept everything you told them, so there's nothing to re-type.`
+            : "We've kept everything you told us, so there's nothing to re-type."
+          : "Just enough to save your place."
+      }
       showRep={false}
-      cta="Send me a code to confirm"
+      cta="Continue"
       ctaDisabled={!complete}
-      onCta={() => {
-        dispatch({ type: "SET_FIELDS", fields: { contactConsent: true } })
-        setStage("code")
-      }}
+      onCta={proceed}
       footer={
         <p className="text-center text-xs leading-relaxed text-muted-foreground">
-          By continuing you&apos;re happy for {brand.shortName} to keep in touch by text or WhatsApp to support your
-          application. Reply STOP any time.{" "}
+          No code to enter — you&apos;ll confirm your number at the end, in one tap.{" "}
           <a href="#" className="underline underline-offset-2" onClick={(e) => e.preventDefault()}>
             Terms
           </a>
@@ -147,9 +129,7 @@ export default function YouPage() {
         className="flex flex-col gap-5"
         onSubmit={(e) => {
           e.preventDefault()
-          if (!complete) return
-          dispatch({ type: "SET_FIELDS", fields: { contactConsent: true } })
-          setStage("code")
+          proceed()
         }}
       >
         <div className="grid grid-cols-2 gap-3">
@@ -169,17 +149,6 @@ export default function YouPage() {
           />
         </div>
         <TextField
-          label="Mobile"
-          value={app.mobile ?? ""}
-          onChange={set("mobile")}
-          type="tel"
-          inputMode="tel"
-          autoComplete="tel"
-          placeholder={brand.country === "AU" ? "04xx xxx xxx" : "02x xxx xxxx"}
-          validate={(v) => (isValidMobile(v) ? null : "That doesn't look like a mobile number")}
-          why={<WhyWeAsk>We text you a code so only you can see your application, and a reminder if you stop halfway.</WhyWeAsk>}
-        />
-        <TextField
           label="Email"
           value={app.email ?? ""}
           onChange={set("email")}
@@ -188,8 +157,34 @@ export default function YouPage() {
           autoComplete="email"
           placeholder="you@example.com"
           validate={(v) => (isValidEmail(v) ? null : "Check the email address")}
-          why={<WhyWeAsk>Your offer letter and anything you need to keep go here. We don&apos;t send marketing to it.</WhyWeAsk>}
+          why={<WhyWeAsk>Your offer letter and anything you need to keep go here.</WhyWeAsk>}
         />
+        <TextField
+          label="Mobile"
+          value={app.mobile ?? ""}
+          onChange={set("mobile")}
+          type="tel"
+          inputMode="tel"
+          autoComplete="tel"
+          placeholder={brand.country === "AU" ? "04xx xxx xxx" : "02x xxx xxxx"}
+          validate={(v) => (isValidMobile(v) ? null : "That doesn't look like a mobile number")}
+          why={
+            <WhyWeAsk>
+              So your advisor can reach you, and so you can pick up on your phone if you stop halfway.
+            </WhyWeAsk>
+          }
+        />
+        <label className="flex items-start gap-3 rounded-2xl bg-muted p-4 text-sm leading-relaxed">
+          <Checkbox
+            checked={!!app.contactConsent}
+            onCheckedChange={(v) => dispatch({ type: "SET_FIELDS", fields: { contactConsent: v === true } })}
+            className="mt-0.5"
+          />
+          <span>
+            Keep me updated about my application by email, text or WhatsApp from {brand.name}.
+            <span className="mt-0.5 block text-xs text-muted-foreground">Optional. Reply STOP any time.</span>
+          </span>
+        </label>
         <button type="submit" className="sr-only">
           Continue
         </button>

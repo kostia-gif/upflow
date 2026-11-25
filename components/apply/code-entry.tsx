@@ -70,7 +70,8 @@ export function CodeEntry({
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <p className="text-base font-medium">Enter the 6-digit code we sent to {mobile}</p>
+        <p className="text-base font-medium">Enter the 6-digit code we texted to {mobile}</p>
+        <p className="mt-1 text-sm text-muted-foreground">On most phones it fills in by itself.</p>
         {onChangeNumber && (
           <button
             type="button"

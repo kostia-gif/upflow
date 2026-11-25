@@ -4,6 +4,7 @@ import Image from "next/image"
 import { CalendarPlus, CheckCircle2, MapPin, Play, Shirt } from "lucide-react"
 import { useState } from "react"
 import { Eyebrow, Lede, PrimaryButton, TextLink, Title } from "@/components/apply/primitives"
+import { HandoffThread } from "@/components/apply/handoff-thread"
 import { RepCard } from "@/components/apply/rep-card"
 import { StatusTracker } from "@/components/apply/status-tracker"
 import { useApplication } from "@/lib/application/context"
@@ -19,6 +20,7 @@ export default function DonePage() {
     (m) => app.modules[m] === "checking" || app.modules[m] === "sent" || app.modules[m] === "later",
   )
   const signed = isComplete(app, "sign")
+  const continueOn = app.moduleData.sign?.continueOn === "sms" ? "sms" : "whatsapp"
 
   const items = [
     { icon: CalendarPlus, t: "Orientation", d: `The week before ${intake?.label ?? "you start"}. Invite comes by email and text.` },
@@ -69,6 +71,8 @@ export default function DonePage() {
             : "Sign when you're ready and we'll lock it in."}
         </Lede>
       </div>
+
+      {signed && <HandoffThread via={continueOn} />}
 
       <StatusTracker current={signed ? "Enrolled" : "Getting ready"} />
 

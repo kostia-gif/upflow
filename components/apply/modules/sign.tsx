@@ -1,21 +1,28 @@
 "use client"
 
+import { MessageCircle } from "lucide-react"
 import { useState } from "react"
 import { Checkbox } from "@/components/ui/checkbox"
-import { PrimaryButton } from "@/components/apply/primitives"
+import { PrimaryButton, TextLink } from "@/components/apply/primitives"
 import { TextField } from "@/components/apply/text-field"
 import { useApplication } from "@/lib/application/context"
 import { moduleMeta } from "@/lib/config/modules"
 import type { ModuleProps } from "./types"
 
 export function SignModule({ onComplete }: ModuleProps) {
-  const { app, brand, course, modules } = useApplication()
+  const { app, brand, course, modules, dispatch } = useApplication()
   const fullName = `${app.firstName ?? ""} ${app.lastName ?? ""}`.trim()
   const [typed, setTyped] = useState("")
   const [agree, setAgree] = useState(false)
   const campus = course.campuses.find((c) => c.id === app.campusId)
   const intake = course.intakes.find((i) => i.id === app.intakeId)
   const match = typed.trim().toLowerCase() === fullName.toLowerCase() && fullName.length > 0
+  const ready = agree && match
+
+  function submit(via: "whatsapp" | "sms") {
+    dispatch({ type: "SET_FIELDS", fields: { channel: via === "whatsapp" ? "whatsapp" : "app", mobileVerified: true } })
+    onComplete("done", { signedBy: typed, at: new Date().toISOString(), continueOn: via })
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -67,9 +74,19 @@ export function SignModule({ onComplete }: ModuleProps) {
         validate={(v) => (v.trim().toLowerCase() === fullName.toLowerCase() ? null : "Needs to match your name exactly")}
       />
 
-      <PrimaryButton disabled={!agree || !match} onClick={() => onComplete("done", { signedBy: typed, at: new Date().toISOString() })}>
-        Sign and finish
-      </PrimaryButton>
+      <div className="flex flex-col gap-2">
+        <PrimaryButton arrow={false} disabled={!ready} onClick={() => submit("whatsapp")}>
+          <MessageCircle className="size-5" aria-hidden /> Submit and continue on WhatsApp
+        </PrimaryButton>
+        <p className="text-pretty text-center text-xs leading-relaxed text-muted-foreground">
+          Opens WhatsApp with a message ready to send. Sending it confirms your number.
+        </p>
+        <div className="flex justify-center">
+          <TextLink onClick={() => ready && submit("sms")} className={ready ? undefined : "pointer-events-none opacity-50"}>
+            No WhatsApp? Text me instead
+          </TextLink>
+        </div>
+      </div>
     </div>
   )
 }
