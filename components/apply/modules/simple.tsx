@@ -2,7 +2,6 @@
 
 import { FileText, Link2, Mic } from "lucide-react"
 import { useCallback, useState } from "react"
-import { AutoAdvance } from "@/components/apply/auto-advance"
 import { MockCamera } from "@/components/apply/mock-camera"
 import { PrimaryButton, SecondaryButton, TextLink } from "@/components/apply/primitives"
 import { Segmented } from "@/components/apply/segmented"
@@ -60,7 +59,7 @@ export function CreditModule({ onComplete }: ModuleProps) {
           </ul>
           <p className="text-sm text-muted-foreground">A course specialist confirms what counts. Nothing is promised yet.</p>
         </div>
-        <AutoAdvance label="Sent for review — moving on" onDone={() => onComplete("checking", { cv: "uploaded" })} />
+        <PrimaryButton onClick={() => onComplete("checking", { cv: "uploaded" })}>Send for review — continue</PrimaryButton>
         <div className="flex justify-center">
           <TextLink onClick={() => setRead(false)}>That&apos;s not right, try another</TextLink>
         </div>

@@ -2,9 +2,8 @@
 
 import { GraduationCap } from "lucide-react"
 import { useCallback, useState } from "react"
-import { AutoAdvance } from "@/components/apply/auto-advance"
 import { MockCamera } from "@/components/apply/mock-camera"
-import { SecondaryButton, TextLink } from "@/components/apply/primitives"
+import { PrimaryButton, SecondaryButton, TextLink } from "@/components/apply/primitives"
 import { WhyWeAsk } from "@/components/apply/why-we-ask"
 import { useApplication } from "@/lib/application/context"
 import type { ModuleProps } from "./types"
@@ -38,7 +37,9 @@ export function SchoolRecordModule({ onComplete }: ModuleProps) {
             Captured and attached to your application. A course specialist will confirm the details.
           </p>
         </div>
-        <AutoAdvance label="Saved — moving on" onDone={() => onComplete("checking", { method: "photo", transcript: "uploaded" })} />
+        <PrimaryButton onClick={() => onComplete("checking", { method: "photo", transcript: "uploaded" })}>
+          Looks right — continue
+        </PrimaryButton>
         <div className="flex justify-center">
           <TextLink onClick={() => setRead(false)}>That&apos;s not right, retake</TextLink>
         </div>

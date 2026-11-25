@@ -4,7 +4,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useCallback } from "react"
 import { CheckCircle2, CircleAlert, Globe } from "lucide-react"
-import { AutoAdvance } from "@/components/apply/auto-advance"
+import { PrimaryButton } from "@/components/apply/primitives"
 import { Segmented } from "@/components/apply/segmented"
 import { StepFrame } from "@/components/apply/step-frame"
 import { WhyWeAsk } from "@/components/apply/why-we-ask"
@@ -126,7 +126,7 @@ export default function AmIInPage() {
                 {rep ? `Talk to ${rep.name} about options` : "See courses that fit now"}
               </Link>
             ) : (
-              <AutoAdvance label="Place held — on to the quick bits" delay={1800} onDone={keepGoing} />
+              <PrimaryButton onClick={keepGoing}>On to the quick bits</PrimaryButton>
             )}
           </div>
         )}
