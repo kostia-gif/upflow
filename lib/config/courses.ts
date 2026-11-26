@@ -1,4 +1,4 @@
-import type { BrandId, CourseConfig } from "@/lib/types"
+import type { BrandId, CourseConfig, PricingTier } from "@/lib/types"
 
 export const courses: CourseConfig[] = [
   {
@@ -6,8 +6,12 @@ export const courses: CourseConfig[] = [
     title: "Master of Counselling",
     shortTitle: "Master of Counselling",
     brand: "aipc",
+    flow: "online-apply-assess",
     school: "Australian Institute of Professional Counsellors",
-    campuses: [{ id: "online", name: "Online", placesLeft: 14 }],
+    campuses: [
+      { id: "online", name: "Online", placesLeft: 99 },
+      { id: "sydney", name: "Sydney campus", placesLeft: 99 },
+    ],
     intakes: [
       { id: "t1-2027", label: "Trimester 1, 2027", date: "2027-03-01" },
       { id: "may-2027", label: "May intake, 2027", date: "2027-05-03" },
@@ -56,10 +60,58 @@ export const courses: CourseConfig[] = [
     orientation: "Online orientation, Thu 25 Feb 2027",
   },
   {
+    id: "aipc-diploma-counselling",
+    title: "Diploma of Counselling",
+    shortTitle: "Diploma of Counselling",
+    brand: "aipc",
+    flow: "online-enrol-pay",
+    school: "Australian Institute of Professional Counsellors",
+    campuses: [{ id: "online", name: "Online", placesLeft: 99 }],
+    intakes: [],
+    fee: "From $295 a month, or $4,990 upfront",
+    duration: "Self-paced, start any time",
+    eligibilityQuestions: [],
+    holdDays: 0,
+    outcomes: [
+      "A nationally recognised Diploma of Counselling",
+      "Study at your own pace, fully online",
+      "Add specialist majors that match where you want to work",
+    ],
+    extraModules: [],
+    fundingOptions: [],
+    orientation: "Start today",
+    majors: [
+      { id: "abuse", title: "Abuse Counselling" },
+      { id: "relationship-conflict", title: "Relationship Counselling and Conflict Resolution" },
+      { id: "expressive-therapies", title: "Introduction to Expressive Therapies" },
+      { id: "grief-loss", title: "Grief and Loss Counselling" },
+      { id: "child-development-parenting", title: "Child Development and Effective Parenting" },
+      { id: "mindfulness", title: "Mindfulness-Based Therapies" },
+      { id: "addictions", title: "Counselling Clients with Addictions" },
+      { id: "family-therapy", title: "Family Therapy" },
+      {
+        id: "aboriginal-torres-strait-islander",
+        title: "Working with Aboriginal and Torres Strait Islander People, Families and Communities",
+      },
+      { id: "children-adolescents", title: "Working with Children and Adolescents" },
+      { id: "health-wellness", title: "Health and Wellness Counselling" },
+    ],
+    pricing: [
+      { majorsPaid: 0, upfront: 4990, fortnightly: 147.5, fortnights: 42, monthly: 295, months: 21 },
+      { majorsPaid: 1, upfront: 5785, fortnightly: 155, fortnights: 48, monthly: 310, months: 24 },
+      { majorsPaid: 2, upfront: 6580, fortnightly: 175, fortnights: 48, monthly: 350, months: 24 },
+      { majorsPaid: 3, upfront: 7375, fortnightly: 200, fortnights: 48, monthly: 400, months: 24 },
+      { majorsPaid: 4, upfront: 8170, fortnightly: 220, fortnights: 48, monthly: 440, months: 24 },
+      { majorsPaid: 5, upfront: 8965, fortnightly: 242.5, fortnights: 48, monthly: 485, months: 24 },
+    ],
+    practical: { sessions: 10, each: 195 },
+  },
+  {
     id: "nzma-cookery-l4",
     title: "New Zealand Certificate in Cookery (Level 4)",
     shortTitle: "Cookery Level 4",
     brand: "nzma",
+    flow: "nz-baseline",
     school: "New Zealand Management Academies",
     campuses: [
       { id: "sylvia-park", name: "Sylvia Park", placesLeft: 4 },
@@ -109,6 +161,7 @@ export const courses: CourseConfig[] = [
     title: "New Zealand Certificate in Beauty Therapy (Level 4)",
     shortTitle: "Beauty Therapy Level 4",
     brand: "elite",
+    flow: "nz-baseline",
     school: "Elite School of Beauty and Spa",
     campuses: [
       { id: "auckland", name: "Auckland", placesLeft: 6 },
@@ -157,6 +210,7 @@ export const courses: CourseConfig[] = [
     title: "New Zealand Certificate in Digital Media and Design (Level 4)",
     shortTitle: "Creative Media Level 4",
     brand: "yoobee",
+    flow: "nz-baseline",
     school: "Yoobee College of Creative Innovation",
     campuses: [{ id: "online", name: "Online", placesLeft: 22 }],
     intakes: [
@@ -204,6 +258,15 @@ export function getCourse(id: string | undefined): CourseConfig | undefined {
 
 export function defaultCourseFor(brand: BrandId): CourseConfig {
   return courses.find((c) => c.brand === brand) ?? courses[0]
+}
+
+export const MAX_MAJORS = 10
+const MAX_PAID_MAJORS = 5
+
+/** Every paid major comes with one free, so two selected majors cost the same as one. */
+export function priceFor(course: CourseConfig, selectedMajorCount: number): PricingTier | undefined {
+  const majorsPaid = Math.min(MAX_PAID_MAJORS, Math.ceil(Math.max(0, selectedMajorCount) / 2))
+  return course.pricing?.find((tier) => tier.majorsPaid === majorsPaid)
 }
 
 export function coursesGroupedBySchool() {

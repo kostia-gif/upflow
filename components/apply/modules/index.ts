@@ -4,6 +4,15 @@ import { AddressModule } from "./address"
 import { GovernmentModule } from "./government"
 import { IdentityModule } from "./identity"
 import { MoneyModule } from "./money"
+import {
+  AuStatsModule,
+  DegreeModule,
+  EntryStatementModule,
+  PayModule,
+  SupportNeedsModule,
+  UsiModule,
+  WorkHistoryModule,
+} from "./placeholder"
 import { SchoolRecordModule } from "./school-record"
 import { SignModule } from "./sign"
 import {
@@ -29,4 +38,11 @@ export const moduleComponents: Record<ModuleId, ComponentType<ModuleProps>> = {
   "placement-check": PlacementCheckModule,
   kit: KitModule,
   sign: SignModule,
+  usi: UsiModule,
+  "support-needs": SupportNeedsModule,
+  "au-stats": AuStatsModule,
+  degree: DegreeModule,
+  "work-history": WorkHistoryModule,
+  "entry-statement": EntryStatementModule,
+  pay: PayModule,
 }

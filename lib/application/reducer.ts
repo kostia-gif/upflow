@@ -1,7 +1,7 @@
 import type { Application, BrandId, ModuleId, ModuleStatus } from "@/lib/types"
 import { getBrand } from "@/lib/config/brands"
 import { defaultCourseFor, getCourse } from "@/lib/config/courses"
-import { modulesFor } from "@/lib/config/modules"
+import { modulesForFlow } from "@/lib/config/modules"
 import { addDays } from "@/lib/format"
 
 export type DevState = {
@@ -162,9 +162,8 @@ export function reducer(state: State, action: Action): State {
 }
 
 export function moduleList(app: Application) {
-  const brand = getBrand(app.brand)
   const course = getCourse(app.courseId) ?? defaultCourseFor(app.brand)
-  return modulesFor(course, brand.country)
+  return modulesForFlow(course)
 }
 
 export function statusOf(app: Application, m: ModuleId): ModuleStatus {
@@ -180,10 +179,11 @@ export function nextTodoModule(app: Application, after?: ModuleId): ModuleId | u
   const list = moduleList(app)
   const start = after ? list.indexOf(after) + 1 : 0
   const ordered = [...list.slice(start), ...list.slice(0, start)]
-  const others = ordered.filter((m) => m !== "sign")
+  const last = list[list.length - 1]
+  const others = ordered.filter((m) => m !== last)
   const next = others.find((m) => !isComplete(app, m))
   if (next) return next
-  if (!isComplete(app, "sign")) return "sign"
+  if (last && !isComplete(app, last)) return last
   return undefined
 }
 

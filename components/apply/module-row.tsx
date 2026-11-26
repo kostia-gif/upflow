@@ -3,12 +3,16 @@
 import Link from "next/link"
 import {
   Banknote,
+  Briefcase,
   Camera,
   Check,
   ChefHat,
   ClipboardList,
+  CreditCard,
   FileText,
+  Fingerprint,
   GraduationCap,
+  HeartHandshake,
   Landmark,
   Lock,
   MapPin,
@@ -36,6 +40,13 @@ export const moduleIcons: Record<ModuleId, LucideIcon> = {
   "placement-check": ClipboardList,
   kit: ChefHat,
   sign: PenLine,
+  usi: Fingerprint,
+  "support-needs": HeartHandshake,
+  "au-stats": Landmark,
+  degree: GraduationCap,
+  "work-history": Briefcase,
+  "entry-statement": MessageSquareText,
+  pay: CreditCard,
 }
 
 export function StatusPill({ status, locked }: { status: ModuleStatus; locked?: boolean }) {

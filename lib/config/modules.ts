@@ -1,4 +1,5 @@
-import type { Country, CourseConfig, ModuleId } from "@/lib/types"
+import { getBrand } from "@/lib/config/brands"
+import type { Country, CourseConfig, FlowId, ModuleId } from "@/lib/types"
 
 export type ModuleMeta = {
   id: ModuleId
@@ -134,6 +135,76 @@ export const moduleMeta: Record<ModuleId, ModuleMeta> = {
     minutes: 1,
     timeLabel: "1 min",
   },
+  usi: {
+    id: "usi",
+    title: "Your USI",
+    description: {
+      NZ: "Your Unique Student Identifier. If you don't have one, we help you get it.",
+      AU: "Your Unique Student Identifier. If you don't have one, we help you get it.",
+    },
+    minutes: 1,
+    timeLabel: "1 min",
+  },
+  "support-needs": {
+    id: "support-needs",
+    title: "Support you might need",
+    description: {
+      NZ: "Anything that would make studying easier for you.",
+      AU: "Anything that would make studying easier for you.",
+    },
+    minutes: 0.5,
+    timeLabel: "30 sec",
+  },
+  "au-stats": {
+    id: "au-stats",
+    title: "Government questions",
+    description: {
+      NZ: "A few questions we have to report. Never affects your application.",
+      AU: "A few questions we have to report. Never affects your application.",
+    },
+    minutes: 1,
+    timeLabel: "1 min",
+  },
+  degree: {
+    id: "degree",
+    title: "Your degree",
+    description: {
+      NZ: "The degree you're using to get in.",
+      AU: "The degree you're using to get in.",
+    },
+    minutes: 1,
+    timeLabel: "1 min",
+  },
+  "work-history": {
+    id: "work-history",
+    title: "Your work history",
+    description: {
+      NZ: "Where you've worked and what you did there.",
+      AU: "Where you've worked and what you did there.",
+    },
+    minutes: 1,
+    timeLabel: "1 min",
+  },
+  "entry-statement": {
+    id: "entry-statement",
+    title: "Three quick questions",
+    description: {
+      NZ: "A sentence each, no essay.",
+      AU: "A sentence each, no essay.",
+    },
+    minutes: 3,
+    timeLabel: "3 min",
+  },
+  pay: {
+    id: "pay",
+    title: "Pay and enrol",
+    description: {
+      NZ: "Choose how you'd like to pay. Last step.",
+      AU: "Choose how you'd like to pay. Last step.",
+    },
+    minutes: 1,
+    timeLabel: "1 min",
+  },
 }
 
 const countryModules: Record<Country, ModuleId[]> = {
@@ -153,6 +224,27 @@ export function modulesFor(course: CourseConfig, country: Country): ModuleId[] {
     }
   }
   return result
+}
+
+const flowModules: Record<Exclude<FlowId, "nz-baseline">, ModuleId[]> = {
+  "online-enrol-pay": ["identity", "address", "usi", "support-needs", "au-stats", "pay"],
+  "online-apply-assess": [
+    "identity",
+    "address",
+    "degree",
+    "work-history",
+    "entry-statement",
+    "usi",
+    "support-needs",
+    "au-stats",
+    "money",
+    "sign",
+  ],
+}
+
+export function modulesForFlow(course: CourseConfig): ModuleId[] {
+  if (course.flow === "nz-baseline") return modulesFor(course, getBrand(course.brand).country)
+  return [...flowModules[course.flow]]
 }
 
 /** Documents the applicant may want on hand for this course, in flow order. */
