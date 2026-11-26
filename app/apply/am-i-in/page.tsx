@@ -37,7 +37,7 @@ export default function AmIInPage() {
 
   return (
     <StepFrame
-      step={3}
+      step={2}
       totalSteps={totalSteps}
       title="Am I in?"
       lede="Quick honesty check. Most people are — and if you're not quite there yet, we'll show you what fits."

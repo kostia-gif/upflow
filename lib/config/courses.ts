@@ -38,6 +38,11 @@ export const courses: CourseConfig[] = [
     ],
     holdDays: 7,
     applyEstimate: "5–12 minutes",
+    outcomes: [
+      "A Master of Counselling, accredited and ready to practise",
+      "Supervised placement hours built into the course",
+      "Set up to open your own practice or join a clinical team",
+    ],
     extraModules: ["credit", "statement", "placement-check"],
     fundingOptions: [
       {
@@ -86,6 +91,11 @@ export const courses: CourseConfig[] = [
       },
     ],
     holdDays: 7,
+    outcomes: [
+      "Your NZ Certificate in Cookery (Level 4)",
+      "Real service hours in a working commercial kitchen",
+      "A head start into a line cook or chef de partie role",
+    ],
     extraModules: ["kit"],
     fundingOptions: [
       { id: "loan", title: "Student loan (StudyLink)", description: "$0 upfront. We'll walk you through it." },
@@ -129,6 +139,11 @@ export const courses: CourseConfig[] = [
       },
     ],
     holdDays: 7,
+    outcomes: [
+      "Your NZ Certificate in Beauty Therapy (Level 4)",
+      "Real clients treated in our training salon",
+      "Ready to work in a salon or spa from day one",
+    ],
     extraModules: ["kit"],
     fundingOptions: [
       { id: "loan", title: "Student loan (StudyLink)", description: "$0 upfront. We'll walk you through it." },
@@ -168,6 +183,11 @@ export const courses: CourseConfig[] = [
       },
     ],
     holdDays: 7,
+    outcomes: [
+      "Your NZ Certificate in Digital Media and Design (Level 4)",
+      "A folio of real, client-style work",
+      "Ready for your first junior creative role",
+    ],
     extraModules: ["portfolio"],
     fundingOptions: [
       { id: "loan", title: "Fees-free", description: "$0. Most first-time students qualify." },

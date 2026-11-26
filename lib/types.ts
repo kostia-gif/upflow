@@ -59,6 +59,8 @@ export type CourseConfig = {
   holdDays: number
   /** Friendly time range shown before applying, overriding the computed single figure. */
   applyEstimate?: string
+  /** Short "what you'll walk away with" bullets shown on the first application screen. */
+  outcomes: string[]
   extraModules: ModuleId[]
   fundingOptions: { id: FundingId; title: string; description: string }[]
   orientation: string

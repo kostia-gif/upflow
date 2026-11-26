@@ -1,20 +1,109 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { Clock, Wallet } from "lucide-react"
+import { Clock, MessageCircle, Save, Wallet } from "lucide-react"
+import { useState } from "react"
+import { Checkbox } from "@/components/ui/checkbox"
+import { FacultyWelcome } from "@/components/apply/faculty-welcome"
+import { OutcomeCallout } from "@/components/apply/outcome-callout"
 import { Segmented } from "@/components/apply/segmented"
 import { NativeSelect, TextLink } from "@/components/apply/primitives"
+import { RepCard } from "@/components/apply/rep-card"
 import { StepFrame } from "@/components/apply/step-frame"
+import { TextField } from "@/components/apply/text-field"
 import { WhatYouNeed } from "@/components/apply/what-you-need"
+import { WhyWeAsk } from "@/components/apply/why-we-ask"
 import { useApplication } from "@/lib/application/context"
+import { isValidEmail, isValidMobile } from "@/lib/format"
 
 export default function StartPage() {
   const router = useRouter()
-  const { app, brand, course, rep, totalSteps, totalMinutes, dispatch } = useApplication()
+  const { app, brand, course, rep, totalSteps, dispatch } = useApplication()
   const campus = course.campuses.find((c) => c.id === app.campusId)
-  const ready = !!app.campusId && !!app.intakeId
   const spoken = app.repAssigned === "spoken" && !!rep
   const firstName = app.firstName?.trim()
+  const [stage, setStage] = useState<"form" | "welcome">("form")
+
+  const set = (k: "firstName" | "lastName" | "mobile" | "email") => (v: string) =>
+    dispatch({ type: "SET_FIELDS", fields: { [k]: v } })
+
+  const courseReady = !!app.campusId && !!app.intakeId
+  const detailsReady =
+    !!app.firstName?.trim() && !!app.lastName?.trim() && isValidMobile(app.mobile ?? "") && isValidEmail(app.email ?? "")
+  const ready = courseReady && detailsReady
+
+  function proceed() {
+    if (!ready) return
+    dispatch({ type: "ASSIGN_ADVISOR" })
+    setStage("welcome")
+  }
+
+  if (stage === "welcome") {
+    const name = app.firstName?.trim() || "there"
+    const helpers = [
+      {
+        icon: MessageCircle,
+        title: "Stuck on anything? Just ask",
+        body: rep
+          ? `Message or call ${rep.name} from any screen — a real person, not a bot. They usually reply in minutes.`
+          : "Message or call us from any screen — a real person, not a bot.",
+      },
+      {
+        icon: Save,
+        title: "Nothing is lost",
+        body: "Every answer saves the moment you give it. Close the tab, switch phones, come back next week — it's all here.",
+      },
+      {
+        icon: Clock,
+        title: "Skip what you don't have on you",
+        body: "Missing a document? Skip that step and add it later — nothing holds up the rest.",
+      },
+    ]
+    return (
+      <StepFrame
+        step={1}
+        totalSteps={totalSteps}
+        back={false}
+        eyebrow="Your place is saved"
+        title={`Nice to meet you, ${name}.`}
+        lede={
+          rep
+            ? spoken
+              ? `${rep.name} has been looking after you since your chat, and stays with you right through to your first day.`
+              : `${rep.name} is your ${rep.role.toLowerCase()} from here on — one person, right through to your first day.`
+            : "Your application is yours now. Here's how we make the rest easy."
+        }
+        showRep={false}
+        cta="Let's keep going"
+        onCta={() => router.push("/apply/am-i-in")}
+      >
+        <div className="flex flex-col gap-6">
+          <RepCard
+            intro={
+              rep
+                ? spoken
+                  ? `Welcome back, ${name} — I've kept your details, nothing to re-type.`
+                  : `Hi ${name}! Great to see you taking the next step. Ask me anything, any time.`
+                : undefined
+            }
+          />
+          <ul className="flex flex-col gap-4">
+            {helpers.map(({ icon: Icon, title, body }) => (
+              <li key={title} className="flex items-start gap-3">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand">
+                  <Icon className="size-4" aria-hidden />
+                </span>
+                <div className="flex flex-col gap-0.5">
+                  <p className="text-sm font-semibold leading-snug">{title}</p>
+                  <p className="text-pretty text-sm leading-relaxed text-muted-foreground">{body}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </StepFrame>
+    )
+  }
 
   return (
     <StepFrame
@@ -32,18 +121,31 @@ export default function StartPage() {
           </>
         )
       }
-      lede={
-        spoken
-          ? `${rep.name} set this up from your chat — check the details and hit Start. About ${course.applyEstimate ?? `${totalMinutes} minutes`} all in.`
-          : `About ${course.applyEstimate ?? `${totalMinutes} minutes`} if you do it in one go — but you don't have to. We save as you go.`
-      }
       showRep={false}
-      cta="Start"
+      cta="Start my application"
       ctaDisabled={!ready}
-      onCta={() => router.push("/apply/you")}
-        secondary={<TextLink href="/course">Not sure yet? Back to the course</TextLink>}
+      onCta={proceed}
+      secondary={<TextLink href="/course">Not sure yet? Back to the course</TextLink>}
+      footer={
+        <p className="text-center text-xs leading-relaxed text-muted-foreground">
+          No code to enter — you&apos;ll confirm your number at the end, in one tap.{" "}
+          <a href="#" className="underline underline-offset-2" onClick={(e) => e.preventDefault()}>
+            Terms
+          </a>
+        </p>
+      }
     >
-      <div className="flex flex-col gap-6">
+      <form
+        className="flex flex-col gap-6"
+        onSubmit={(e) => {
+          e.preventDefault()
+          proceed()
+        }}
+      >
+        <FacultyWelcome brand={brand.id} courseTitle={course.shortTitle} />
+
+        <OutcomeCallout outcomes={course.outcomes} />
+
         <dl className="grid grid-cols-2 gap-3">
           <div className="flex items-start gap-2 rounded-2xl bg-muted p-3">
             <Clock className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden />
@@ -123,7 +225,68 @@ export default function StartPage() {
         )}
 
         <WhatYouNeed />
-      </div>
+
+        <div className="flex flex-col gap-5 border-t border-border pt-6">
+          <p className="text-sm font-semibold">A few details to save your place</p>
+          <div className="grid grid-cols-2 gap-3">
+            <TextField
+              label="First name"
+              value={app.firstName ?? ""}
+              onChange={set("firstName")}
+              autoComplete="given-name"
+              validate={(v) => (v.trim() ? null : "We need this one")}
+            />
+            <TextField
+              label="Last name"
+              value={app.lastName ?? ""}
+              onChange={set("lastName")}
+              autoComplete="family-name"
+              validate={(v) => (v.trim() ? null : "We need this one")}
+            />
+          </div>
+          <TextField
+            label="Email"
+            value={app.email ?? ""}
+            onChange={set("email")}
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            placeholder="you@example.com"
+            validate={(v) => (isValidEmail(v) ? null : "Check the email address")}
+            why={<WhyWeAsk>Your offer letter and anything you need to keep go here.</WhyWeAsk>}
+          />
+          <TextField
+            label="Mobile"
+            value={app.mobile ?? ""}
+            onChange={set("mobile")}
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            placeholder={brand.country === "AU" ? "04xx xxx xxx" : "02x xxx xxxx"}
+            validate={(v) => (isValidMobile(v) ? null : "That doesn't look like a mobile number")}
+            why={
+              <WhyWeAsk>
+                So your advisor can reach you, and so you can pick up on your phone if you stop halfway.
+              </WhyWeAsk>
+            }
+          />
+          <label className="flex items-start gap-3 rounded-2xl bg-muted p-4 text-sm leading-relaxed">
+            <Checkbox
+              checked={!!app.contactConsent}
+              onCheckedChange={(v) => dispatch({ type: "SET_FIELDS", fields: { contactConsent: v === true } })}
+              className="mt-0.5"
+            />
+            <span>
+              Keep me updated about my application by email, text or WhatsApp from {brand.name}.
+              <span className="mt-0.5 block text-xs text-muted-foreground">Optional. Reply STOP any time.</span>
+            </span>
+          </label>
+        </div>
+
+        <button type="submit" className="sr-only">
+          Continue
+        </button>
+      </form>
     </StepFrame>
   )
 }
