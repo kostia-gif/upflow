@@ -58,7 +58,7 @@ export default function EnrolYouPage() {
         totalSteps={totalSteps}
         back={false}
         showWhatsApp={false}
-        eyebrow="Your place is saved"
+        eyebrow="Your progress is saved"
         title={returning ? `Welcome back, ${firstName}.` : `Nice to meet you, ${firstName}.`}
         lede={
           rep
@@ -114,7 +114,7 @@ export default function EnrolYouPage() {
           ? spoken
             ? `${rep.name} kept everything you told them, so there's nothing to re-type.`
             : "We've kept everything you told us, so there's nothing to re-type."
-          : "Just enough to save your place."
+          : "Just enough to save your progress."
       }
       showRep={false}
       cta="Continue"

@@ -377,7 +377,7 @@ export function AuStatsModule({ onComplete }: ModuleProps) {
   const [group, setGroup] = useState(0)
   const [answers, setAnswers] = useState<Record<string, string>>(() => ({
     countryOfBirth: app.moduleData.usi?.countryOfBirth ?? "",
-    citizenship: app.citizenship ?? "",
+    citizenship: app.citizenship && CITIZENSHIP.includes(app.citizenship) ? app.citizenship : "",
   }))
   const [quals, setQuals] = useState<string[]>([])
   const a = (k: string) => answers[k] ?? ""

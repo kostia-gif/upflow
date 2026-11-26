@@ -5,6 +5,7 @@ import { BookOpen, LogIn, PhoneCall, type LucideIcon } from "lucide-react"
 import { toast } from "sonner"
 import { Eyebrow, Lede, PrimaryButton, TextLink, Title } from "@/components/apply/primitives"
 import { RepCard } from "@/components/apply/rep-card"
+import { StatusTracker } from "@/components/apply/status-tracker"
 import { StepFrame } from "@/components/apply/step-frame"
 import { useApplication } from "@/lib/application/context"
 import { isComplete } from "@/lib/application/reducer"
@@ -126,7 +127,56 @@ function EnrolledDone() {
   )
 }
 
-function NotFinishedYet() {
+const ASSESSMENT_STEPS = ["Submitted", "Being assessed", "Offer", "You accept", "FEE-HELP form", "Enrolled"]
+
+function ApplicationInDone() {
+  const { app, brand, rep, modules } = useApplication()
+  const firstName = app.firstName?.trim()
+  const pending = modules.filter((m) => app.modules[m] === "later" || app.modules[m] === "checking")
+
+  return (
+    <div className="flex flex-col gap-6 px-5 pb-10 pt-6">
+      <div className="flex flex-col gap-3">
+        <Eyebrow>Application in</Eyebrow>
+        <Title>Thanks{firstName ? `, ${firstName}` : ""}. It&apos;s with admissions now.</Title>
+        <Lede>You&apos;ll hear from {rep?.name ?? "your advisor"} within two working days.</Lede>
+      </div>
+
+      <StatusTracker current="Being assessed" steps={ASSESSMENT_STEPS} />
+
+      {pending.length > 0 && (
+        <div className="flex flex-col gap-2 rounded-2xl bg-warning-soft p-4 text-sm leading-relaxed">
+          <p className="font-semibold text-warning">Still with us</p>
+          <ul className="flex flex-col gap-1">
+            {pending.map((m) => (
+              <li key={m}>
+                {app.modules[m] === "later" ? (
+                  <Link href={`${ENROL_STEPS_PATH}/${m}`} className="font-medium underline underline-offset-4">
+                    {moduleMeta[m].title}
+                  </Link>
+                ) : (
+                  moduleMeta[m].title
+                )}{" "}
+                — {app.modules[m] === "checking" ? "being checked" : "still to send"}
+              </li>
+            ))}
+          </ul>
+          <p className="text-muted-foreground">
+            Admissions can start without these. We&apos;ll remind you by text or email about anything still to send.
+          </p>
+        </div>
+      )}
+
+      <RepCard channel="text" intro="Questions while you wait? Just ask" />
+
+      <div className="flex justify-center">
+        <TextLink href="/">Back to {brand.shortName}</TextLink>
+      </div>
+    </div>
+  )
+}
+
+function NotFinishedYet({ lede }: { lede: string }) {
   return (
     <StepFrame
       back={false}
@@ -134,28 +184,23 @@ function NotFinishedYet() {
       showWhatsApp={false}
       eyebrow="Nearly there"
       title="A few steps to go."
-      lede="Finish your steps and pay, and you can start straight away."
+      lede={lede}
       secondary={<TextLink href={ENROL_STEPS_PATH}>Back to my steps</TextLink>}
     />
   )
 }
 
-function ApplyAssessPlaceholder() {
-  return (
-    <div className="flex flex-col gap-4 px-5 pb-10 pt-6">
-      <Title>That&apos;s everything.</Title>
-      <Lede>This screen isn&apos;t built yet.</Lede>
-      <div className="flex">
-        <TextLink href={ENROL_STEPS_PATH}>Back to my steps</TextLink>
-      </div>
-    </div>
-  )
-}
-
 export default function EnrolDonePage() {
-  const { app, course, hydrated } = useApplication()
+  const { app, course, modules, hydrated } = useApplication()
   if (!hydrated) return null
-  if (course.flow !== "online-enrol-pay") return <ApplyAssessPlaceholder />
-  if (!isComplete(app, "pay")) return <NotFinishedYet />
-  return <EnrolledDone />
+  if (course.flow === "online-enrol-pay") {
+    if (!isComplete(app, "pay")) {
+      return <NotFinishedYet lede="Finish your steps and pay, and you can start straight away." />
+    }
+    return <EnrolledDone />
+  }
+  if (!isComplete(app, modules[modules.length - 1])) {
+    return <NotFinishedYet lede="Finish your steps and submit, and admissions will take it from there." />
+  }
+  return <ApplicationInDone />
 }

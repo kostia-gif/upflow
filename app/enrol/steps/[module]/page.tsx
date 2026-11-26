@@ -5,11 +5,12 @@ import Link from "next/link"
 import { notFound, useParams, useRouter } from "next/navigation"
 import { useCallback } from "react"
 import { toast } from "sonner"
-import { moduleComponents } from "@/components/apply/modules"
+import { moduleComponentFor } from "@/components/apply/modules"
 import { Lede, TextLink, Title } from "@/components/apply/primitives"
 import { ProgressSegments } from "@/components/apply/step-frame"
 import { useApplication } from "@/lib/application/context"
 import { minutesLabel, moduleMeta } from "@/lib/config/modules"
+import { moduleDescription } from "@/lib/enrol/copy"
 import { ENROL_STEPS_PATH } from "@/lib/enrol/routes"
 import type { ModuleId, ModuleStatus } from "@/lib/types"
 
@@ -27,9 +28,9 @@ export default function EnrolModulePage() {
 
 function EnrolModule({ id }: { id: ModuleId }) {
   const router = useRouter()
-  const { app, brand, modules, applySteps, totalSteps, nextModule, dispatch } = useApplication()
+  const { app, brand, course, modules, applySteps, totalSteps, nextModule, dispatch } = useApplication()
   const meta = moduleMeta[id]
-  const Component = moduleComponents[id]
+  const Component = moduleComponentFor(course.flow, id)
   const index = modules.indexOf(id)
   const isLast = index === modules.length - 1
 
@@ -78,7 +79,7 @@ function EnrolModule({ id }: { id: ModuleId }) {
             <Clock className="size-3.5" aria-hidden /> {minutesLabel(meta.minutes)}
           </span>
         </div>
-        <Lede>{meta.description[brand.country]}</Lede>
+        <Lede>{moduleDescription(app, course, id, brand.country)}</Lede>
       </div>
       {app.modules[id] && app.modules[id] !== "todo" && (
         <p className="rounded-2xl bg-success-soft p-3 text-sm text-success">

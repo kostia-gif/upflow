@@ -178,6 +178,10 @@ export const moduleMeta: Record<ModuleId, ModuleMeta> = {
     },
     minutes: 1,
     timeLabel: "1 min",
+    needs: {
+      NZ: "Your degree certificate or transcript — a photo is fine",
+      AU: "Your degree certificate or transcript — a photo is fine",
+    },
   },
   "work-history": {
     id: "work-history",
@@ -188,16 +192,20 @@ export const moduleMeta: Record<ModuleId, ModuleMeta> = {
     },
     minutes: 1,
     timeLabel: "1 min",
+    needs: {
+      NZ: "A CV, if you have one",
+      AU: "A CV, if you have one",
+    },
   },
   "entry-statement": {
     id: "entry-statement",
     title: "Three quick questions",
     description: {
-      NZ: "A sentence each, no essay.",
-      AU: "A sentence each, no essay.",
+      NZ: "A few sentences each. No essay.",
+      AU: "A few sentences each. No essay.",
     },
-    minutes: 3,
-    timeLabel: "3 min",
+    minutes: 4,
+    timeLabel: "4 min",
   },
   pay: {
     id: "pay",

@@ -11,6 +11,7 @@ import { ProgressSegments } from "@/components/apply/step-frame"
 import { useApplication } from "@/lib/application/context"
 import { isComplete } from "@/lib/application/reducer"
 import { minutesLabel } from "@/lib/config/modules"
+import { moduleDescription } from "@/lib/enrol/copy"
 import { ENROL_STEPS_PATH } from "@/lib/enrol/routes"
 import { finalStepBlockers } from "@/lib/enrol/steps"
 
@@ -109,6 +110,7 @@ export default function EnrolStepsHubPage() {
                 locked={m === last && !othersDone}
                 highlight={m === next}
                 basePath={ENROL_STEPS_PATH}
+                description={moduleDescription(app, course, m, brand.country)}
               />
             </li>
           ))}

@@ -31,7 +31,11 @@ export default function InternationalPage() {
         frameClass(state.dev.desktopView),
       )}
     >
-      <Link href="/apply/am-i-in" className="flex size-10 items-center justify-center rounded-full hover:bg-muted" aria-label="Back">
+      <Link
+        href={course.flow === "online-apply-assess" ? "/enrol/way-in" : "/apply/am-i-in"}
+        className="flex size-10 items-center justify-center rounded-full hover:bg-muted"
+        aria-label="Back"
+      >
         <ArrowLeft className="size-5" aria-hidden />
       </Link>
       <div className="flex flex-col gap-3">

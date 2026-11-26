@@ -5,9 +5,11 @@ import { Clock, CreditCard, Fingerprint } from "lucide-react"
 import { FacultyWelcome } from "@/components/apply/faculty-welcome"
 import { OutcomeCallout } from "@/components/apply/outcome-callout"
 import { TextLink } from "@/components/apply/primitives"
+import { Segmented } from "@/components/apply/segmented"
 import { StepFrame } from "@/components/apply/step-frame"
 import { WhatYouNeed } from "@/components/apply/what-you-need"
 import { useApplication } from "@/lib/application/context"
+import { STUDY_MODES, type StudyMode } from "@/lib/enrol/masters"
 
 const enrolNeeds = [
   { icon: Clock, text: "About 8 minutes" },
@@ -17,11 +19,12 @@ const enrolNeeds = [
 
 export default function EnrolStartPage() {
   const router = useRouter()
-  const { app, brand, course, totalSteps } = useApplication()
+  const { app, brand, course, totalSteps, dispatch } = useApplication()
   const spoken = app.repAssigned === "spoken"
   const firstName = app.firstName?.trim()
   const enrolAndPay = course.flow === "online-enrol-pay"
   const courseName = <span className="text-brand">{course.shortTitle}</span>
+  const ready = enrolAndPay || (!!app.intakeId && !!app.studyMode)
 
   return (
     <StepFrame
@@ -37,14 +40,17 @@ export default function EnrolStartPage() {
         ) : enrolAndPay ? (
           <>Hi. Let&apos;s get you started on the {courseName}.</>
         ) : (
-          <>Hi. Let&apos;s get you into {courseName}.</>
+          <>Hi. Let&apos;s get your {courseName} application in.</>
         )
       }
       lede={
-        enrolAndPay ? "Self-paced and fully online. Enrol today, start today." : "We look forward to seeing you enrol."
+        enrolAndPay
+          ? "Self-paced and fully online. Enrol today, start today."
+          : "About 10 minutes. Have your degree certificate or transcript and a CV handy, or add them later."
       }
       showRep={false}
       cta={brand.applyCta}
+      ctaDisabled={!ready}
       onCta={() => router.push("/enrol/you")}
       secondary={<TextLink href="/course">Not sure yet? Back to the course</TextLink>}
     >
@@ -66,7 +72,24 @@ export default function EnrolStartPage() {
             </ul>
           </section>
         ) : (
-          <WhatYouNeed />
+          <>
+            <Segmented
+              label="Start"
+              options={course.intakes.map((i) => ({ value: i.id, label: i.label }))}
+              value={app.intakeId}
+              onChange={(v) => dispatch({ type: "SET_FIELDS", fields: { intakeId: v } })}
+              helper="You can change this later without starting over."
+            />
+            <Segmented
+              label="How you'll study"
+              options={STUDY_MODES}
+              value={app.studyMode}
+              onChange={(v) =>
+                dispatch({ type: "SET_FIELDS", fields: { studyMode: v as StudyMode, campusId: v } })
+              }
+            />
+            <WhatYouNeed />
+          </>
         )}
       </div>
     </StepFrame>

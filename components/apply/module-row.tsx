@@ -87,6 +87,7 @@ export function ModuleRow({
   compact,
   highlight,
   basePath = "/apply/ready",
+  description,
 }: {
   id: ModuleId
   status: ModuleStatus
@@ -95,6 +96,8 @@ export function ModuleRow({
   compact?: boolean
   highlight?: boolean
   basePath?: string
+  /** Replaces the step's standard description. */
+  description?: string
 }) {
   const meta = moduleMeta[id]
   const Icon = moduleIcons[id]
@@ -113,7 +116,7 @@ export function ModuleRow({
           <span className="truncate text-base font-semibold">{meta.title}</span>
           <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">{meta.timeLabel}</span>
         </span>
-        {!compact && <span className="text-sm leading-snug text-muted-foreground">{meta.description[country]}</span>}
+        {!compact && <span className="text-sm leading-snug text-muted-foreground">{description ?? meta.description[country]}</span>}
       </span>
       <StatusPill status={status} locked={locked && status !== "done"} />
     </>
