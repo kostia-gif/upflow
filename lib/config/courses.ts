@@ -260,6 +260,21 @@ export function defaultCourseFor(brand: BrandId): CourseConfig {
   return courses.find((c) => c.brand === brand) ?? courses[0]
 }
 
+export const AIPC_MASTER_ID = "aipc-master-counselling"
+export const AIPC_DIPLOMA_ID = "aipc-diploma-counselling"
+
+/**
+ * The course an application is on. With `legacy` on, the AIPC Master is returned as it was
+ * before the spines were split, so it runs through the original Spine 1 screens for comparison.
+ */
+export function resolveCourse(app: { courseId: string; brand: BrandId }, legacy = false): CourseConfig {
+  const course = getCourse(app.courseId) ?? defaultCourseFor(app.brand)
+  if (legacy && course.id === AIPC_MASTER_ID) {
+    return { ...course, flow: "nz-baseline", campuses: [{ id: "online", name: "Online", placesLeft: 14 }] }
+  }
+  return course
+}
+
 export const MAX_MAJORS = 10
 const MAX_PAID_MAJORS = 5
 

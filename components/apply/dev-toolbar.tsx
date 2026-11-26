@@ -8,11 +8,12 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import { Switch } from "@/components/ui/switch"
 import { useApplication } from "@/lib/application/context"
 import { brandOrder, brands } from "@/lib/config/brands"
-import { pathAFixture, returningFixture } from "@/lib/application/reducer"
-import type { BrandId } from "@/lib/types"
+import { AIPC_DIPLOMA_ID, AIPC_MASTER_ID, resolveCourse } from "@/lib/config/courses"
+import { newApplication, pathAFixture, returningFixture } from "@/lib/application/reducer"
+import type { BrandId, FlowId } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
-const jumps = [
+const spine1Jumps = [
   ["/", "Intro"],
   ["/course", "Course page"],
   ["/apply", "Apply"],
@@ -23,29 +24,94 @@ const jumps = [
   ["/international", "International"],
 ]
 
+function spine2Jumps(flow: FlowId) {
+  return [
+    ["/", "Intro"],
+    ["/enrol/start", "Start"],
+    ["/enrol/you", "Your details"],
+    ...(flow === "online-enrol-pay"
+      ? [
+          ["/enrol/build", "Build your course"],
+          ["/enrol/plan", "Payment plan"],
+        ]
+      : [["/enrol/way-in", "Your way in"]]),
+    ["/enrol/steps", "Steps hub"],
+    ["/enrol/done", "Done"],
+    ["/enrol/welcome-back", "Returning student"],
+  ]
+}
+
+const trackLabels: Record<FlowId, string> = {
+  "nz-baseline": "Spine 1 · Baseline application",
+  "online-enrol-pay": "Spine 2 · Track 2A, enrol and pay",
+  "online-apply-assess": "Spine 2 · Track 2B, apply and assess",
+}
+
+const aipcCourses = [
+  { id: AIPC_DIPLOMA_ID, label: "Diploma" },
+  { id: AIPC_MASTER_ID, label: "Master" },
+]
+
 export function DevToolbar() {
-  const { state, dispatch } = useApplication()
+  const { state, course, dispatch } = useApplication()
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const { dev } = state
+  const legacy = !!dev.aipcLegacy
+  const spine2 = course.flow !== "nz-baseline"
+  const onLegacyMaster = legacy && course.id === AIPC_MASTER_ID
+  const trackLabel = onLegacyMaster ? "Spine 1 · AIPC Master, legacy" : trackLabels[course.flow]
+  const jumps = spine2 ? spine2Jumps(course.flow) : spine1Jumps
+
+  const isSpine2 = (courseId: string, legacyOn: boolean) =>
+    resolveCourse({ courseId, brand: "aipc" }, legacyOn).flow !== "nz-baseline"
+
+  function pathAHref(brand: BrandId, courseId: string) {
+    const base = `/apply?app=APP-1042&rep=${brands[brand].defaultAdvisor}`
+    return brand === "aipc" ? `${base}&course=${courseId}` : base
+  }
+
+  /** Loads an AIPC course in the current entry state and opens the screen that state starts on. */
+  function openAipcCourse(courseId: string, legacyOn: boolean) {
+    setOpen(false)
+    if (dev.returning) {
+      dispatch({ type: "LOAD_APP", app: returningFixture("aipc", courseId, legacyOn) })
+      router.push(isSpine2(courseId, legacyOn) ? "/enrol/steps" : "/apply/ready")
+    } else if (dev.entryPath === "A") {
+      dispatch({ type: "LOAD_APP", app: pathAFixture("aipc", courseId, legacyOn) })
+      router.push(pathAHref("aipc", courseId))
+    } else {
+      dispatch({ type: "LOAD_APP", app: { ...newApplication("aipc", courseId), entryPath: "B" } })
+      router.push(isSpine2(courseId, legacyOn) ? `/apply?course=${courseId}` : "/course")
+    }
+  }
 
   function setBrand(brand: BrandId) {
     dispatch({ type: "SET_BRAND", brand })
     if (dev.returning) {
-      dispatch({ type: "LOAD_APP", app: returningFixture(brand) })
+      dispatch({ type: "LOAD_APP", app: returningFixture(brand, undefined, legacy) })
     }
+  }
+
+  function setLegacy(on: boolean) {
+    dispatch({ type: "SET_DEV", dev: { aipcLegacy: on } })
+    openAipcCourse(AIPC_MASTER_ID, on)
   }
 
   function setEntryPath(path: "A" | "B") {
     dispatch({ type: "SET_DEV", dev: { entryPath: path } })
+    setOpen(false)
     if (path === "A") {
-      dispatch({ type: "LOAD_APP", app: pathAFixture(dev.brand) })
-      setOpen(false)
-      router.push(`/apply?app=APP-1042&rep=${brands[dev.brand].defaultAdvisor}`)
+      dispatch({ type: "LOAD_APP", app: pathAFixture(dev.brand, course.id, legacy) })
+      router.push(pathAHref(dev.brand, course.id))
+      return
+    }
+    dispatch({ type: "RESET" })
+    if (spine2) {
+      dispatch({ type: "LOAD_APP", app: { ...newApplication(dev.brand, course.id), entryPath: "B" } })
+      router.push(`/apply?course=${course.id}`)
     } else {
-      dispatch({ type: "RESET" })
       router.push("/course")
-      setOpen(false)
     }
   }
 
@@ -58,11 +124,14 @@ export function DevToolbar() {
   function setReturning(on: boolean) {
     dispatch({ type: "SET_DEV", dev: { returning: on, returningVerified: false } })
     if (on) {
-      dispatch({ type: "LOAD_APP", app: returningFixture(dev.brand) })
+      dispatch({ type: "LOAD_APP", app: returningFixture(dev.brand, course.id, legacy) })
       setOpen(false)
-      router.push("/apply/ready")
+      router.push(spine2 ? "/enrol/steps" : "/apply/ready")
     } else {
       dispatch({ type: "RESET" })
+      if (spine2) {
+        dispatch({ type: "LOAD_APP", app: { ...newApplication(dev.brand, course.id), entryPath: "B" } })
+      }
     }
   }
 
@@ -102,6 +171,7 @@ export function DevToolbar() {
           <SheetHeader className="p-0">
             <SheetTitle className="font-heading text-xl">Prototype controls</SheetTitle>
             <SheetDescription>Switch brand, entry path and returning state. Nothing here ships.</SheetDescription>
+            <p className="w-fit rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-foreground">{trackLabel}</p>
           </SheetHeader>
           <div className="flex flex-col gap-6 overflow-y-auto">
             <section className="flex flex-col gap-2">
@@ -129,6 +199,37 @@ export function DevToolbar() {
               </div>
             </section>
 
+            {dev.brand === "aipc" && (
+              <section className="flex flex-col gap-3">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Course</h3>
+                <div className="flex gap-1 rounded-xl bg-muted p-1" role="group" aria-label="AIPC course">
+                  {aipcCourses.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      aria-pressed={course.id === c.id}
+                      onClick={() => openAipcCourse(c.id, legacy)}
+                      className={cn(
+                        "min-h-10 flex-1 rounded-lg px-2 text-sm font-medium",
+                        course.id === c.id ? "bg-background shadow-sm" : "text-muted-foreground",
+                      )}
+                    >
+                      {c.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <h4 className="text-sm font-medium">AIPC on Spine 1 (legacy)</h4>
+                    <p className="text-xs text-muted-foreground">
+                      Runs the Master through the original /apply screens, for comparison.
+                    </p>
+                  </div>
+                  <Switch checked={legacy} onCheckedChange={setLegacy} aria-label="AIPC on Spine 1 (legacy)" />
+                </div>
+              </section>
+            )}
+
             <section className="flex flex-col gap-2">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Entry path</h3>
               <div className="flex gap-1 rounded-xl bg-muted p-1">
@@ -147,14 +248,19 @@ export function DevToolbar() {
                 ))}
               </div>
               <p className="text-xs text-muted-foreground">
-                A loads Sarah Bilkey with a rep attached and jumps to the details check. B starts fresh from the course page.
+                A loads Sarah Bilkey with a rep attached and jumps to the details check. B starts fresh from the{" "}
+                {spine2 ? "start screen" : "course page"}.
               </p>
             </section>
 
             <section className="flex items-center justify-between gap-3">
               <div>
                 <h3 className="text-sm font-medium">Returning student</h3>
-                <p className="text-xs text-muted-foreground">Three modules done, hold running. Gate by code.</p>
+                <p className="text-xs text-muted-foreground">
+                  {spine2
+                    ? "Details, address and USI done. Gate by code."
+                    : "Three modules done, hold running. Gate by code."}
+                </p>
               </div>
               <Switch checked={dev.returning} onCheckedChange={setReturning} aria-label="Returning student" />
             </section>

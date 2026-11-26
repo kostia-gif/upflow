@@ -12,6 +12,7 @@ import { useApplication } from "@/lib/application/context"
 import { minutesLabel, moduleMeta } from "@/lib/config/modules"
 import { moduleDescription } from "@/lib/enrol/copy"
 import { ENROL_STEPS_PATH } from "@/lib/enrol/routes"
+import { stepAfter } from "@/lib/enrol/steps"
 import type { ModuleId, ModuleStatus } from "@/lib/types"
 
 export default function EnrolModulePage() {
@@ -51,10 +52,10 @@ function EnrolModule({ id }: { id: ModuleId }) {
         router.push("/enrol/done")
         return
       }
-      const next = nextModule(id)
+      const next = stepAfter(id, app, modules, nextModule)
       router.push(next ? `${ENROL_STEPS_PATH}/${next}` : ENROL_STEPS_PATH)
     },
-    [dispatch, id, isLast, meta.title, nextModule, router],
+    [app, dispatch, id, isLast, meta.title, modules, nextModule, router],
   )
 
   return (

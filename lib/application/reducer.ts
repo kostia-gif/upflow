@@ -1,6 +1,6 @@
-import type { Application, BrandId, ModuleId, ModuleStatus } from "@/lib/types"
+import type { Application, BrandId, CourseConfig, ModuleId, ModuleStatus } from "@/lib/types"
 import { getBrand } from "@/lib/config/brands"
-import { defaultCourseFor, getCourse } from "@/lib/config/courses"
+import { defaultCourseFor, getCourse, resolveCourse } from "@/lib/config/courses"
 import { modulesForFlow } from "@/lib/config/modules"
 import { addDays } from "@/lib/format"
 
@@ -10,6 +10,8 @@ export type DevState = {
   returning: boolean
   returningVerified: boolean
   desktopView: boolean
+  /** Runs the AIPC Master through the original Spine 1 screens, for side-by-side comparison. */
+  aipcLegacy?: boolean
 }
 
 export type State = {
@@ -48,14 +50,21 @@ export function newApplication(brand: BrandId, courseId?: string): Application {
   }
 }
 
-export function pathAFixture(brand: BrandId): Application {
+/** A fixture's course must belong to the brand; anything else falls back to the brand's default. */
+function fixtureCourse(brand: BrandId, courseId?: string, legacy = false) {
+  const requested = getCourse(courseId)
+  const course = requested?.brand === brand ? requested : defaultCourseFor(brand)
+  return resolveCourse({ courseId: course.id, brand }, legacy)
+}
+
+export function pathAFixture(brand: BrandId, courseId?: string, legacy = false): Application {
   const b = getBrand(brand)
-  const course = defaultCourseFor(brand)
+  const course = fixtureCourse(brand, courseId, legacy)
   return {
     ...newApplication(brand, course.id),
     id: "APP-1042",
     campusId: course.campuses.find((c) => c.placesLeft > 0)?.id,
-    intakeId: course.intakes[0].id,
+    intakeId: course.intakes[0]?.id,
     rep: b.defaultAdvisor,
     repAssigned: "spoken",
     entryPath: "A",
@@ -66,10 +75,47 @@ export function pathAFixture(brand: BrandId): Application {
   }
 }
 
-export function returningFixture(brand: BrandId): Application {
+const returningIdentity = {
+  method: "photo",
+  name: "Sarah Jane Bilkey",
+  dob: "14 May 1991",
+  citizenship: "Australian citizen",
+}
+
+const returningAddress = { line1: "12 Boundary Street", suburb: "West End QLD 4101" }
+
+/** Spine 2 returning state: details, address and USI done; nothing else touched. */
+function spine2ReturningFixture(base: Application, course: CourseConfig): Application {
+  const shared: Application = {
+    ...base,
+    mobileVerified: true,
+    residency: "yes",
+    citizenship: "Australian citizen",
+    submittedAt: addDays(-2),
+    modules: { identity: "done", address: "done", usi: "done" },
+    moduleData: {
+      identity: returningIdentity,
+      address: returningAddress,
+      usi: { method: "have", usi: "K3PQ7R2M9W" },
+    },
+  }
+  if (course.flow === "online-enrol-pay") {
+    return { ...shared, majors: (course.majors ?? []).slice(0, 2).map((m) => m.id), paymentPlan: "monthly" }
+  }
+  return {
+    ...shared,
+    pathway: "counselling-bachelor",
+    studyMode: "online",
+    campusId: "online",
+    eligibility: { english: "Yes" },
+  }
+}
+
+export function returningFixture(brand: BrandId, courseId?: string, legacy = false): Application {
   const b = getBrand(brand)
-  const course = defaultCourseFor(brand)
-  const base = pathAFixture(brand)
+  const course = fixtureCourse(brand, courseId, legacy)
+  const base = pathAFixture(brand, course.id, legacy)
+  if (course.flow !== "nz-baseline") return spine2ReturningFixture(base, course)
   return {
     ...base,
     id: "APP-1042",
@@ -161,9 +207,8 @@ export function reducer(state: State, action: Action): State {
   }
 }
 
-export function moduleList(app: Application) {
-  const course = getCourse(app.courseId) ?? defaultCourseFor(app.brand)
-  return modulesForFlow(course)
+export function moduleList(app: Application, legacy = false) {
+  return modulesForFlow(resolveCourse(app, legacy))
 }
 
 export function statusOf(app: Application, m: ModuleId): ModuleStatus {
@@ -175,8 +220,8 @@ export function isComplete(app: Application, m: ModuleId) {
   return s === "done" || s === "sent" || s === "checking" || s === "later"
 }
 
-export function nextTodoModule(app: Application, after?: ModuleId): ModuleId | undefined {
-  const list = moduleList(app)
+export function nextTodoModule(app: Application, after?: ModuleId, legacy = false): ModuleId | undefined {
+  const list = moduleList(app, legacy)
   const start = after ? list.indexOf(after) + 1 : 0
   const ordered = [...list.slice(start), ...list.slice(0, start)]
   const last = list[list.length - 1]
@@ -187,8 +232,8 @@ export function nextTodoModule(app: Application, after?: ModuleId): ModuleId | u
   return undefined
 }
 
-export function progress(app: Application) {
-  const list = moduleList(app)
+export function progress(app: Application, legacy = false) {
+  const list = moduleList(app, legacy)
   const done = list.filter((m) => isComplete(app, m)).length
   return { done, total: list.length }
 }

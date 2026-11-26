@@ -9,6 +9,7 @@ import { StepFrame } from "@/components/apply/step-frame"
 import { useApplication } from "@/lib/application/context"
 import { minutesLabel, moduleMeta } from "@/lib/config/modules"
 import { ENROL_STEPS_PATH } from "@/lib/enrol/routes"
+import { stepAfter } from "@/lib/enrol/steps"
 import { addDays, formatDayMonth } from "@/lib/format"
 import type { ModuleId } from "@/lib/types"
 
@@ -34,7 +35,7 @@ function RemindMe() {
   const router = useRouter()
   const search = useSearchParams()
   const moduleParam = search.get("module") as ModuleId | null
-  const { modules, progress, minutesLeft, rep, nextModule, dispatch } = useApplication()
+  const { app, modules, progress, minutesLeft, rep, nextModule, dispatch } = useApplication()
   const skipping = moduleParam && modules.includes(moduleParam) ? moduleParam : undefined
   const [preset, setPreset] = useState<Preset>("tomorrow")
   const [picked, setPicked] = useState("")
@@ -50,7 +51,7 @@ function RemindMe() {
       dispatch({ type: "SET_MODULE_STATUS", module: skipping, status: "later" })
       dispatch({ type: "SET_LAST_MODULE", module: skipping })
       toast.success(`${moduleMeta[skipping].title} — we'll remind you ${label}`)
-      const next = nextModule(skipping)
+      const next = stepAfter(skipping, app, modules, nextModule)
       router.push(next ? `${ENROL_STEPS_PATH}/${next}` : ENROL_STEPS_PATH)
       return
     }

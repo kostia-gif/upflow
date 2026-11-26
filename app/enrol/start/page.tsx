@@ -52,7 +52,7 @@ export default function EnrolStartPage() {
       cta={brand.applyCta}
       ctaDisabled={!ready}
       onCta={() => router.push("/enrol/you")}
-      secondary={<TextLink href="/course">Not sure yet? Back to the course</TextLink>}
+      secondary={<TextLink href="/">Not sure yet? Back to the overview</TextLink>}
     >
       <div className="flex flex-col gap-6">
         <FacultyWelcome brand={brand.id} courseTitle={course.shortTitle} />

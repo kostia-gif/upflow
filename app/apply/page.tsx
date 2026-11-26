@@ -4,30 +4,33 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { Suspense, useEffect } from "react"
 import { useApplication } from "@/lib/application/context"
 import { pathAFixture } from "@/lib/application/reducer"
-import { getCourse } from "@/lib/config/courses"
+import { getCourse, resolveCourse } from "@/lib/config/courses"
 import { getRep } from "@/lib/config/reps"
 import type { Application, BrandId } from "@/lib/types"
 
 function ApplyEntry() {
   const params = useSearchParams()
   const router = useRouter()
-  const { app, dispatch } = useApplication()
+  const { app, state, hydrated, dispatch } = useApplication()
 
   useEffect(() => {
+    if (!hydrated) return
+    const legacy = !!state.dev.aipcLegacy
     const appId = params.get("app")
     const repId = params.get("rep")
     const rep = getRep(repId ?? undefined)
+    const course = getCourse(params.get("course") ?? undefined)
 
     if (appId) {
       const brand = (rep?.brand ?? params.get("brand") ?? app.brand) as BrandId
+      const fixture = pathAFixture(brand, course?.id, legacy)
       dispatch({ type: "SET_DEV", dev: { entryPath: "A", brand } })
-      dispatch({ type: "LOAD_APP", app: { ...pathAFixture(brand), id: appId, rep: rep?.id ?? pathAFixture(brand).rep } })
-      router.replace("/apply/you")
+      dispatch({ type: "LOAD_APP", app: { ...fixture, id: appId, rep: rep?.id ?? fixture.rep } })
+      router.replace(resolveCourse(fixture, legacy).flow === "nz-baseline" ? "/apply/you" : "/enrol/you")
       return
     }
 
     const fields: Partial<Application> = {}
-    const course = getCourse(params.get("course") ?? undefined)
     if (course) {
       fields.courseId = course.id
       fields.brand = course.brand
@@ -48,11 +51,14 @@ function ApplyEntry() {
       if (key.startsWith("elig_")) dispatch({ type: "SET_ELIGIBILITY", id: key.slice(5), value })
     })
 
-    const flowCourse = course ?? getCourse(app.courseId)
-    router.replace(flowCourse && flowCourse.flow !== "nz-baseline" ? "/enrol/start" : "/apply/start")
-    // Runs once on entry: URL params are the source of truth for this hop only.
+    const flowCourse = resolveCourse(
+      { courseId: course?.id ?? app.courseId, brand: course?.brand ?? app.brand },
+      legacy,
+    )
+    router.replace(flowCourse.flow !== "nz-baseline" ? "/enrol/start" : "/apply/start")
+    // Runs once on entry, after saved state loads: URL params are the source of truth for this hop only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [hydrated])
 
   return (
     <div className="flex flex-1 items-center justify-center p-10 text-sm text-muted-foreground" aria-live="polite">
