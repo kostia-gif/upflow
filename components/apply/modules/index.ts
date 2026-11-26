@@ -1,18 +1,11 @@
 import type { ComponentType } from "react"
 import type { ModuleId } from "@/lib/types"
 import { AddressModule } from "./address"
+import { AuStatsModule, SupportNeedsModule, UsiModule } from "./au"
 import { GovernmentModule } from "./government"
 import { IdentityModule } from "./identity"
 import { MoneyModule } from "./money"
-import {
-  AuStatsModule,
-  DegreeModule,
-  EntryStatementModule,
-  PayModule,
-  SupportNeedsModule,
-  UsiModule,
-  WorkHistoryModule,
-} from "./placeholder"
+import { DegreeModule, EntryStatementModule, PayModule, WorkHistoryModule } from "./placeholder"
 import { SchoolRecordModule } from "./school-record"
 import { SignModule } from "./sign"
 import {

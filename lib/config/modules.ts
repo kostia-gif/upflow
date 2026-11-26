@@ -139,11 +139,15 @@ export const moduleMeta: Record<ModuleId, ModuleMeta> = {
     id: "usi",
     title: "Your USI",
     description: {
-      NZ: "Your Unique Student Identifier. If you don't have one, we help you get it.",
-      AU: "Your Unique Student Identifier. If you don't have one, we help you get it.",
+      NZ: "Your Unique Student Identifier. Everyone studying in Australia needs one, and you keep it for life.",
+      AU: "Your Unique Student Identifier. Everyone studying in Australia needs one, and you keep it for life.",
     },
     minutes: 1,
     timeLabel: "1 min",
+    needs: {
+      NZ: "Your USI if you have it, or one form of ID so we can set one up",
+      AU: "Your USI if you have it, or one form of ID so we can set one up",
+    },
   },
   "support-needs": {
     id: "support-needs",
@@ -152,18 +156,18 @@ export const moduleMeta: Record<ModuleId, ModuleMeta> = {
       NZ: "Anything that would make studying easier for you.",
       AU: "Anything that would make studying easier for you.",
     },
-    minutes: 0.5,
-    timeLabel: "30 sec",
+    minutes: 1,
+    timeLabel: "1 min",
   },
   "au-stats": {
     id: "au-stats",
     title: "Government questions",
     description: {
-      NZ: "A few questions we have to report. Never affects your application.",
-      AU: "A few questions we have to report. Never affects your application.",
+      NZ: "Three short sets of questions we're required to ask.",
+      AU: "Three short sets of questions we're required to ask.",
     },
-    minutes: 1,
-    timeLabel: "1 min",
+    minutes: 2,
+    timeLabel: "2 min",
   },
   degree: {
     id: "degree",
@@ -249,7 +253,7 @@ export function modulesForFlow(course: CourseConfig): ModuleId[] {
 
 /** Documents the applicant may want on hand for this course, in flow order. */
 export function needsFor(course: CourseConfig, country: Country): string[] {
-  return modulesFor(course, country)
+  return modulesForFlow(course)
     .map((m) => moduleMeta[m].needs?.[country])
     .filter((n): n is string => !!n)
 }

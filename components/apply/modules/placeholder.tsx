@@ -23,9 +23,6 @@ function placeholderFor(id: ModuleId) {
   return PlaceholderModule
 }
 
-export const UsiModule = placeholderFor("usi")
-export const SupportNeedsModule = placeholderFor("support-needs")
-export const AuStatsModule = placeholderFor("au-stats")
 export const DegreeModule = placeholderFor("degree")
 export const WorkHistoryModule = placeholderFor("work-history")
 export const EntryStatementModule = placeholderFor("entry-statement")

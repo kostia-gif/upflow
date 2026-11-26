@@ -48,7 +48,8 @@ function ApplyEntry() {
       if (key.startsWith("elig_")) dispatch({ type: "SET_ELIGIBILITY", id: key.slice(5), value })
     })
 
-    router.replace("/apply/start")
+    const flowCourse = course ?? getCourse(app.courseId)
+    router.replace(flowCourse && flowCourse.flow !== "nz-baseline" ? "/enrol/start" : "/apply/start")
     // Runs once on entry: URL params are the source of truth for this hop only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])

@@ -86,6 +86,7 @@ export function ModuleRow({
   locked,
   compact,
   highlight,
+  basePath = "/apply/ready",
 }: {
   id: ModuleId
   status: ModuleStatus
@@ -93,6 +94,7 @@ export function ModuleRow({
   locked?: boolean
   compact?: boolean
   highlight?: boolean
+  basePath?: string
 }) {
   const meta = moduleMeta[id]
   const Icon = moduleIcons[id]
@@ -124,7 +126,7 @@ export function ModuleRow({
   )
   if (locked || compact) return <div className={cls}>{inner}</div>
   return (
-    <Link href={`/apply/ready/${id}`} className={cls}>
+    <Link href={`${basePath}/${id}`} className={cls}>
       {inner}
     </Link>
   )
