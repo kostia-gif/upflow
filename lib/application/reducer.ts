@@ -40,6 +40,7 @@ export function newApplication(brand: BrandId, courseId?: string): Application {
     courseId: course.id,
     campusId: (course.campuses.find((c) => c.placesLeft > 0) ?? course.campuses[0])?.id,
     intakeId: course.intakes[0]?.id,
+    contactConsent: true,
     mobileVerified: false,
     eligibility: {},
     modules: {},

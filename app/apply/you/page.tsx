@@ -118,10 +118,11 @@ export default function YouPage() {
       onCta={proceed}
       footer={
         <p className="text-center text-xs leading-relaxed text-muted-foreground">
-          No code to enter — you&apos;ll confirm your number at the end, in one tap.{" "}
+          By continuing you agree to our{" "}
           <a href="#" className="underline underline-offset-2" onClick={(e) => e.preventDefault()}>
             Terms
           </a>
+          .
         </p>
       }
     >
