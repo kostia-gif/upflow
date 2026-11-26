@@ -203,8 +203,8 @@ export const moduleMeta: Record<ModuleId, ModuleMeta> = {
     id: "pay",
     title: "Pay and enrol",
     description: {
-      NZ: "Choose how you'd like to pay. Last step.",
-      AU: "Choose how you'd like to pay. Last step.",
+      NZ: "Check your order and pay. Last step.",
+      AU: "Check your order and pay. Last step.",
     },
     minutes: 1,
     timeLabel: "1 min",

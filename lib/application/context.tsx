@@ -71,7 +71,7 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
     const course = getCourse(app.courseId) ?? defaultCourseFor(app.brand)
     const modules = moduleList(app)
     const minutesLeft = modules.filter((m) => !isComplete(app, m)).reduce((sum, m) => sum + moduleMeta[m].minutes, 0)
-    const applySteps = 3
+    const applySteps = course.flow === "online-enrol-pay" ? 4 : 3
     const totalMinutes = totalMinutesFor(course, brand.country)
     return {
       state,

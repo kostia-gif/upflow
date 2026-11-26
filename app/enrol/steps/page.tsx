@@ -12,6 +12,7 @@ import { useApplication } from "@/lib/application/context"
 import { isComplete } from "@/lib/application/reducer"
 import { minutesLabel } from "@/lib/config/modules"
 import { ENROL_STEPS_PATH } from "@/lib/enrol/routes"
+import { finalStepBlockers } from "@/lib/enrol/steps"
 
 export default function EnrolStepsHubPage() {
   const router = useRouter()
@@ -50,11 +51,14 @@ export default function EnrolStepsHubPage() {
     )
   }
 
+  const enrolAndPay = course.flow === "online-enrol-pay"
   const last = modules[modules.length - 1]
-  const othersDone = modules.filter((m) => m !== last).every((m) => isComplete(app, m))
+  const blockers = finalStepBlockers(app, course, modules)
+  const othersDone = blockers.length === 0
   const allDone = othersDone && isComplete(app, last)
-  const next = nextModule(state.lastModule)
-  const finalLabel = course.flow === "online-enrol-pay" ? "Review and pay" : "Review and submit"
+  const upNext = nextModule(state.lastModule)
+  const next = upNext === last && !othersDone ? blockers[0] : upNext
+  const finalLabel = enrolAndPay ? "Review and pay" : "Review and submit"
 
   return (
     <div className="flex flex-col">
@@ -72,7 +76,9 @@ export default function EnrolStepsHubPage() {
             {allDone
               ? `All done${name}.`
               : progress.done === 0
-                ? `Your steps${name}.`
+                ? enrolAndPay
+                  ? "Four quick things, then you're in."
+                  : `Your steps${name}.`
                 : `Nice one${name}. ${progress.total - progress.done} to go.`}
           </Title>
           <Lede>

@@ -10,23 +10,28 @@ import { Lede, TextLink, Title } from "@/components/apply/primitives"
 import { ProgressSegments } from "@/components/apply/step-frame"
 import { useApplication } from "@/lib/application/context"
 import { minutesLabel, moduleMeta } from "@/lib/config/modules"
-import { ENROL_STEPS_PATH, preStepsPath } from "@/lib/enrol/routes"
+import { ENROL_STEPS_PATH } from "@/lib/enrol/routes"
 import type { ModuleId, ModuleStatus } from "@/lib/types"
 
 export default function EnrolModulePage() {
   const params = useParams<{ module: string }>()
-  const router = useRouter()
-  const { app, brand, course, modules, applySteps, totalSteps, nextModule, dispatch } = useApplication()
+  const { modules, hydrated } = useApplication()
   const id = params.module as ModuleId
 
+  // Before saved state loads, the step list is the default course's, which may not include this step.
+  if (!hydrated) return null
   if (!modules.includes(id)) notFound()
 
+  return <EnrolModule id={id} />
+}
+
+function EnrolModule({ id }: { id: ModuleId }) {
+  const router = useRouter()
+  const { app, brand, modules, applySteps, totalSteps, nextModule, dispatch } = useApplication()
   const meta = moduleMeta[id]
   const Component = moduleComponents[id]
   const index = modules.indexOf(id)
-  const isFirst = index === 0
   const isLast = index === modules.length - 1
-  const backHref = isFirst ? preStepsPath(course) : ENROL_STEPS_PATH
 
   const onComplete = useCallback(
     (status: ModuleStatus, data?: Record<string, string>, message?: string) => {
@@ -55,8 +60,8 @@ export default function EnrolModulePage() {
     <div className="flex flex-col gap-6 px-5 pb-10 pt-4">
       <div className="flex items-center gap-3">
         <Link
-          href={backHref}
-          aria-label={isFirst ? "Back" : "Back to all steps"}
+          href={ENROL_STEPS_PATH}
+          aria-label="Back to all steps"
           className="flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-muted"
         >
           <ArrowLeft className="size-5" aria-hidden />

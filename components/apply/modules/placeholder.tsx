@@ -26,4 +26,3 @@ function placeholderFor(id: ModuleId) {
 export const DegreeModule = placeholderFor("degree")
 export const WorkHistoryModule = placeholderFor("work-history")
 export const EntryStatementModule = placeholderFor("entry-statement")
-export const PayModule = placeholderFor("pay")
