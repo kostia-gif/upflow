@@ -14,6 +14,8 @@ export type BrandConfig = {
   soft: string
   headingFont: "outfit" | "barlow" | "cormorant" | "syne"
   greeting: string
+  /** CTA label leaving the welcome screen and into the application proper. */
+  applyCta: string
   supportPhone: string
   tutorVideoPoster: string
   tutorVideoCaption: string

@@ -3,21 +3,19 @@
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { Clock, MessageCircle, Save } from "lucide-react"
+import { Checkbox } from "@/components/ui/checkbox"
 import { RepCard } from "@/components/apply/rep-card"
 import { StepFrame } from "@/components/apply/step-frame"
 import { TextField } from "@/components/apply/text-field"
+import { WhyWeAsk } from "@/components/apply/why-we-ask"
 import { useApplication } from "@/lib/application/context"
 import { isValidEmail, isValidMobile } from "@/lib/format"
 
-/**
- * Only reached by returning applicants who already spoke to an advisor
- * (entryPath "A") — their details are prefilled, so this is a quick check,
- * not the full welcome. Fresh applicants start on /apply/start instead.
- */
 export default function YouPage() {
   const router = useRouter()
   const { app, brand, rep, totalSteps, dispatch } = useApplication()
   const spoken = app.repAssigned === "spoken" && !!rep
+  const returning = app.entryPath === "A"
   const [stage, setStage] = useState<"details" | "welcome">("details")
 
   const set = (k: "firstName" | "lastName" | "mobile" | "email") => (v: string) =>
@@ -55,16 +53,18 @@ export default function YouPage() {
     ]
     return (
       <StepFrame
-        step={1}
+        step={2}
         totalSteps={totalSteps}
         back={false}
         eyebrow="Your place is saved"
-        title={`Welcome back, ${firstName}.`}
+        title={returning ? `Welcome back, ${firstName}.` : `Nice to meet you, ${firstName}.`}
         lede={
           rep
             ? spoken
               ? `${rep.name} has been looking after you since your chat, and stays with you right through to your first day.`
-              : `Good to hear from you again. ${rep.name}, who you spoke to when you enquired, is your ${rep.role.toLowerCase()} from here on — one person, right through to your first day.`
+              : returning
+                ? `Good to hear from you again. ${rep.name}, who you spoke to when you enquired, is your ${rep.role.toLowerCase()} from here on — one person, right through to your first day.`
+                : `${rep.name} is your ${rep.role.toLowerCase()} from here on — one person, right through to your first day.`
             : "Your application is yours now. Here's how we make the rest easy."
         }
         showRep={false}
@@ -101,14 +101,16 @@ export default function YouPage() {
 
   return (
     <StepFrame
-      step={1}
+      step={2}
       totalSteps={totalSteps}
-      eyebrow="Quick check"
-      title={app.firstName ? `Just checking these are right, ${app.firstName}.` : "Just checking these are right."}
+      eyebrow={returning ? "Quick check" : undefined}
+      title={returning && app.firstName ? `Just checking these are right, ${app.firstName}.` : "First, who are you?"}
       lede={
-        spoken
-          ? `${rep.name} kept everything you told them, so there's nothing to re-type.`
-          : "We've kept everything you told us, so there's nothing to re-type."
+        returning
+          ? spoken
+            ? `${rep.name} kept everything you told them, so there's nothing to re-type.`
+            : "We've kept everything you told us, so there's nothing to re-type."
+          : "Just enough to save your place."
       }
       showRep={false}
       cta="Continue"
@@ -155,6 +157,7 @@ export default function YouPage() {
           autoComplete="email"
           placeholder="you@example.com"
           validate={(v) => (isValidEmail(v) ? null : "Check the email address")}
+          why={<WhyWeAsk>Your offer letter and anything you need to keep go here.</WhyWeAsk>}
         />
         <TextField
           label="Mobile"
@@ -165,7 +168,36 @@ export default function YouPage() {
           autoComplete="tel"
           placeholder={brand.country === "AU" ? "04xx xxx xxx" : "02x xxx xxxx"}
           validate={(v) => (isValidMobile(v) ? null : "That doesn't look like a mobile number")}
+          why={
+            <WhyWeAsk>
+              So your advisor can reach you, and so you can pick up on your phone if you stop halfway.
+            </WhyWeAsk>
+          }
         />
+
+        <div className="flex items-start gap-3 rounded-2xl bg-muted p-4 text-sm leading-relaxed">
+          <Save className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden />
+          <p>
+            Stop any time — we save as you go. If something&apos;s missing, we follow up when you&apos;re ready to
+            add it, not before.
+          </p>
+        </div>
+
+        <label className="flex items-start gap-3 rounded-2xl bg-muted p-4 text-sm leading-relaxed">
+          <Checkbox
+            checked={!!app.contactConsent}
+            onCheckedChange={(v) => dispatch({ type: "SET_FIELDS", fields: { contactConsent: v === true } })}
+            className="mt-0.5"
+          />
+          <span>
+            Let {brand.shortName} keep track of my application and reach out by text, email or WhatsApp if
+            anything&apos;s needed to finish it.
+            <span className="mt-0.5 block text-xs text-muted-foreground">
+              This is about finishing your application, not marketing. Reply STOP any time.
+            </span>
+          </span>
+        </label>
+
         <button type="submit" className="sr-only">
           Continue
         </button>
