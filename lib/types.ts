@@ -14,6 +14,8 @@ export type BrandConfig = {
   soft: string
   headingFont: "outfit" | "barlow" | "cormorant" | "syne"
   greeting: string
+  /** CTA label leaving the welcome screen and into the application proper. */
+  applyCta: string
   supportPhone: string
   tutorVideoPoster: string
   tutorVideoCaption: string
@@ -57,6 +59,10 @@ export type CourseConfig = {
   duration: string
   eligibilityQuestions: EligibilityQuestion[]
   holdDays: number
+  /** Friendly time range shown before applying, overriding the computed single figure. */
+  applyEstimate?: string
+  /** Short "what you'll walk away with" bullets shown on the first application screen. */
+  outcomes: string[]
   extraModules: ModuleId[]
   fundingOptions: { id: FundingId; title: string; description: string }[]
   orientation: string

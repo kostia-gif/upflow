@@ -147,7 +147,7 @@ export function DevToolbar() {
                 ))}
               </div>
               <p className="text-xs text-muted-foreground">
-                A loads Sarah Bilkey with a rep attached and jumps to the code step. B starts fresh from the course page.
+                A loads Sarah Bilkey with a rep attached and jumps to the details check. B starts fresh from the course page.
               </p>
             </section>
 

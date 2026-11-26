@@ -22,8 +22,10 @@ export type Scene = {
   choices?: Choice[]
   /** Continue straight into another scene once the messages have played. */
   auto?: string
+  /** Treat anything the student types next as their answer and continue to this scene. */
+  capture?: string
   /** Open a bottom sheet after the messages; the sheet decides the next scene. */
-  sheet?: "upload" | "id-upload" | "sign"
+  sheet?: "upload" | "transcript" | "sign"
   /** Mark a module in the shared application state when this scene plays. */
   complete?: { module: ModuleId; status: "done" | "checking" | "sent"; data?: Record<string, string> }
   /** Skip this module for the rest of the thread — the student has chosen to do it later. */
@@ -52,7 +54,7 @@ function joinList(items: string[]) {
 }
 
 /** Modules the chat can finish, in the order the assistant offers them. */
-export const chatModules: ModuleId[] = ["identity", "money", "credit", "sign"]
+export const chatModules: ModuleId[] = ["identity", "money", "school-record", "credit", "statement", "sign"]
 
 export function buildScript(ctx: ScriptCtx): Record<string, Scene> {
   const { firstName, brand, course, rep, campus, holdUntil, webviewHref, doneHref, remaining } = ctx
@@ -264,57 +266,48 @@ export function buildScript(ctx: ScriptCtx): Record<string, Scene> {
         {
           kind: "text",
           from: "assistant",
-          text: `One thing is still waiting from before: your photo ID. A passport, birth certificate or citizenship certificate — take a photo of it and I'll read the details, no typing.`,
+          text: `First, let's confirm who you are — no documents needed for this one, just check these are right:`,
+        },
+        {
+          kind: "text",
+          from: "assistant",
+          text: `Name — Sarah Jane Bilkey\nDate of birth — ${au ? "14 May 1991" : "14 May 2008"}`,
         },
       ],
       choices: [
-        { label: "Take a photo now", next: "identity-upload" },
-        { label: "I'll do it later", next: "identity-later" },
+        { label: "Yes, that's me", next: "identity-confirmed" },
+        { label: "Something's not right", next: "identity-fix" },
       ],
     },
     {
-      id: "identity-upload",
-      beat: 3,
-      messages: [{ kind: "text", from: "assistant", text: "Lay it flat in good light with all four corners in frame, then send it here." }],
-      sheet: "id-upload",
-    },
-    {
-      id: "identity-read",
+      id: "identity-confirmed",
       beat: 3,
       complete: {
         module: "identity",
         status: "done",
-        data: {
-          method: "photo",
-          document: "Passport",
-          name: "Sarah Jane Bilkey",
-          dob: au ? "14 May 1991" : "14 May 2008",
-          citizenship: au ? "Australian citizen" : "New Zealand citizen",
-        },
+        data: { method: "confirmed", name: "Sarah Jane Bilkey", dob: au ? "14 May 1991" : "14 May 2008" },
       },
       messages: [
         {
           kind: "text",
           from: "assistant",
-          text: `Read it — passport, Sarah Jane Bilkey, born ${au ? "14 May 1991" : "14 May 2008"}, ${
-            au ? "Australian" : "New Zealand"
-          } citizen. That matches what you told us, so you're verified. The photo isn't kept — only those details are.`,
+          text: "Great — that's your identity confirmed. No ID upload needed for this course.",
         },
       ],
       auto: "resume",
     },
     {
-      id: "identity-later",
+      id: "identity-fix",
       beat: 3,
-      defer: "identity",
+      capture: "identity-confirmed",
       messages: [
         {
           kind: "text",
           from: "assistant",
-          text: "No problem — it's the one thing we can't finish without, so I'll nudge you about it tomorrow. Let's do the rest.",
+          text: "No problem — type the correct name or date of birth and I'll update it.",
         },
       ],
-      auto: "resume",
+      choices: [{ label: "Actually, it's correct", next: "identity-confirmed" }],
     },
     {
       id: "money",
@@ -379,6 +372,51 @@ export function buildScript(ctx: ScriptCtx): Record<string, Scene> {
       auto: "resume",
     },
     {
+      id: "school-record",
+      beat: 3,
+      messages: [
+        {
+          kind: "text",
+          from: "assistant",
+          text: "Next: your academic transcript. Snap a photo or upload the file and I'll read your results straight off it — no typing.",
+        },
+      ],
+      choices: [
+        { label: "Do it now", next: "school-record-upload" },
+        { label: "I'll send it later", next: "school-record-later" },
+      ],
+    },
+    {
+      id: "school-record-upload",
+      beat: 3,
+      messages: [{ kind: "text", from: "assistant", text: "A clear photo of the whole page is perfect — send it here." }],
+      sheet: "transcript",
+    },
+    {
+      id: "school-record-read",
+      beat: 3,
+      complete: { module: "school-record", status: "checking", data: { transcript: "uploaded" } },
+      messages: [
+        {
+          kind: "text",
+          from: "assistant",
+          text: au
+            ? "Got it — I can read it: Bachelor of Psychology, University of Queensland, completed 2014. Captured and attached to your application. A course specialist will confirm the details."
+            : "Got it — I can read it: NCEA Level 3 with Merit, 2023. Captured and attached to your application. A course specialist will confirm the details.",
+        },
+      ],
+      auto: "resume",
+    },
+    {
+      id: "school-record-later",
+      beat: 3,
+      defer: "school-record",
+      messages: [
+        { kind: "text", from: "assistant", text: "No problem — I'll remind you. Send it any time and I'll read it then." },
+      ],
+      auto: "resume",
+    },
+    {
       id: "credit",
       beat: 3,
       messages: [
@@ -389,8 +427,8 @@ export function buildScript(ctx: ScriptCtx): Record<string, Scene> {
         },
       ],
       choices: [
-        { label: "Yes, I'll send it", next: "credit-upload" },
-        { label: "No, skip it", next: "credit-skip" },
+        { label: "Do it now", next: "credit-upload" },
+        { label: "I'll send it later", next: "credit-later" },
       ],
     },
     {
@@ -413,10 +451,66 @@ export function buildScript(ctx: ScriptCtx): Record<string, Scene> {
       auto: "resume",
     },
     {
-      id: "credit-skip",
+      id: "credit-later",
       beat: 3,
-      complete: { module: "credit", status: "done", data: { cv: "skipped" } },
-      messages: [{ kind: "text", from: "assistant", text: "No worries — you can send it later if you find something." }],
+      defer: "credit",
+      messages: [{ kind: "text", from: "assistant", text: "No worries — I'll remind you. Send it whenever and I'll check what might count." }],
+      auto: "resume",
+    },
+    {
+      id: "statement",
+      beat: 3,
+      messages: [
+        {
+          kind: "text",
+          from: "assistant",
+          text: "Last thing before you sign: a bit about why counselling. No 300-word essay — just three quick questions, a sentence each is plenty.",
+        },
+      ],
+      choices: [
+        { label: "Answer them now", next: "statement-q1" },
+        { label: "I'll do it later", next: "statement-later" },
+      ],
+    },
+    {
+      id: "statement-q1",
+      beat: 3,
+      capture: "statement-q2",
+      messages: [{ kind: "text", from: "assistant", text: "1 of 3 — In a sentence, what draws you to counselling?" }],
+      choices: [{ label: "\u201CSupporting people through hard times is what I keep coming back to.\u201D", next: "statement-q2" }],
+    },
+    {
+      id: "statement-q2",
+      beat: 3,
+      capture: "statement-q3",
+      messages: [{ kind: "text", from: "assistant", text: "2 of 3 — Tell me about a time you supported someone." }],
+      choices: [{ label: "\u201CI helped a colleague through burnout, and it changed how I listen.\u201D", next: "statement-q3" }],
+    },
+    {
+      id: "statement-q3",
+      beat: 3,
+      capture: "statement-done",
+      messages: [{ kind: "text", from: "assistant", text: "3 of 3 — Where do you want to be in five years?" }],
+      choices: [{ label: "\u201CWorking as a registered counsellor in community health.\u201D", next: "statement-done" }],
+    },
+    {
+      id: "statement-done",
+      beat: 3,
+      complete: { module: "statement", status: "done", data: { method: "three-questions" } },
+      messages: [
+        {
+          kind: "text",
+          from: "assistant",
+          text: "Perfect — I've turned those three answers into your personal statement. You can read and tweak it before it's submitted; nothing's locked in.",
+        },
+      ],
+      auto: "resume",
+    },
+    {
+      id: "statement-later",
+      beat: 3,
+      defer: "statement",
+      messages: [{ kind: "text", from: "assistant", text: "All good — I'll nudge you. It's only three short questions when you're ready." }],
       auto: "resume",
     },
     {
@@ -510,7 +604,9 @@ export function buildScript(ctx: ScriptCtx): Record<string, Scene> {
 export function routeFreeText(text: string): string {
   const t = text.toLowerCase()
   if (/placement|practicum|hours|agency|agencies/.test(t)) return "q-placement"
-  if (/passport|photo id|licence|license|birth cert|citizenship|identity|\bid\b/.test(t)) return "identity"
+  if (/transcript|results|grades|ncea|usi|academic record|school record/.test(t)) return "school-record"
+  if (/essay|statement|personal statement|why counselling/.test(t)) return "statement"
+  if (/name|date of birth|dob|identity|photo id|\bid\b/.test(t)) return "identity"
   if (/fee|cost|price|pay|loan|money|afford|studylink|help/.test(t)) return "q-fees"
   if (/later|tomorrow|tonight|busy|next week|not now|remind/.test(t)) return "later"
   if (/human|person|someone|advisor|adviser|call|talk|speak|chat to|priya|matt|aroha|tane/.test(t)) return "human"

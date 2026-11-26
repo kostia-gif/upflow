@@ -16,7 +16,7 @@ const beats = [
   { icon: MessageSquareText, title: "Thanks, and where you're up to", body: "The provider opens the thread: you're in, your place is held, here's what's done and what's left." },
   { icon: UserRound, title: "Your advisor joins the same chat", body: "Priya — the person from the enquiry — is added to the thread, not a separate number. Student and advisor share one history." },
   { icon: Bot, title: "AI triages, a human is one tap away", body: "The assistant answers the quick stuff and offers to hand over. Anything it isn't sure of goes straight to Priya." },
-  { icon: FileUp, title: "Documents land in the chat", body: "Photo ID is still outstanding, so the assistant asks for it. A passport photo or a CV arrives as a photo or file; the assistant reads it and updates the application on the spot." },
+  { icon: FileUp, title: "Details and documents in the chat", body: "The assistant confirms name and date of birth, reads an academic transcript and CV straight from a photo, and turns three short questions into a personal statement — each updating the application on the spot." },
   { icon: PenLine, title: "Sign, and you're enrolled", body: "The agreement is summarised in the thread and signed with a finger. Nothing left to do in a form." },
 ]
 
@@ -39,11 +39,11 @@ function isBrandId(v: string | null): v is BrandId {
   return !!v && (brandOrder as string[]).includes(v)
 }
 
-/** The returning fixture has ID done; here it is still outstanding so the thread can ask for a passport photo. */
+/** The returning fixture has these done; here they're still outstanding so the thread can confirm details and ask for the transcript. */
 function chatFixture(brand: BrandId, channel: Channel) {
   const fixture = returningFixture(brand)
-  const { identity: _status, ...modules } = fixture.modules
-  const { identity: _data, ...moduleData } = fixture.moduleData
+  const { identity: _iStatus, "school-record": _sStatus, ...modules } = fixture.modules
+  const { identity: _iData, "school-record": _sData, ...moduleData } = fixture.moduleData
   return { ...fixture, modules, moduleData, channel: channel === "sms" ? ("app" as const) : ("whatsapp" as const) }
 }
 
@@ -78,9 +78,9 @@ function Journey() {
           <span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Proof of concept</span>
           <h1 className="text-balance font-sans text-3xl font-semibold leading-[1.1] tracking-tight">{current.title}</h1>
           <p className="text-pretty text-base leading-relaxed text-muted-foreground">
-            The student started in the browser and stopped. The rest of the enrolment — questions, the outstanding
-            passport photo, the signature — happens in one thread the advisor is part of. Tap the replies, or type
-            your own question.
+            The student started in the browser and stopped. The rest of the enrolment — a few details to confirm,
+            the transcript and CV, a short personal statement, the signature — happens in one thread the advisor is
+            part of. Tap the replies, or type your own question.
           </p>
         </div>
         <ol className="hidden flex-col gap-1 lg:flex">

@@ -36,7 +36,7 @@ export default function ModulePage() {
       const messages: Record<ModuleStatus, string> = {
         done: `${meta.title} — done`,
         sent: `${meta.title} — sent`,
-        checking: `${meta.title} — we're checking it`,
+        checking: `${meta.title} — received. A specialist will check it, no need to wait.`,
         later: `${meta.title} — we'll remind you`,
         todo: meta.title,
       }

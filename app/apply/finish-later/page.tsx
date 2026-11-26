@@ -57,14 +57,9 @@ function RemindMe() {
       return
     }
     setSaved(true)
-    toast.success(`Reminder set — ${label}`)
   }
 
-  const title = saved
-    ? "Sorted. See you then."
-    : skipping
-      ? `Skip "${moduleMeta[skipping].title}" for now?`
-      : "Pause here?"
+  const title = saved ? "Sorted. See you then." : skipping ? `Skip "${moduleMeta[skipping].title}" for now?` : "Pause here?"
   const lede = saved
     ? `We'll ${channelName} ${app.mobile || "you"} ${label} with a link straight back to where you left off.`
     : skipping

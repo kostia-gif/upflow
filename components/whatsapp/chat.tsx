@@ -20,6 +20,14 @@ function readTime(text: string) {
   return Math.min(1600, 500 + text.length * 9)
 }
 
+const SHEET_PREFIX = "sheet:"
+
+const sheetPrompt: Record<NonNullable<Scene["sheet"]>, string> = {
+  transcript: "Add my transcript",
+  upload: "Add my CV",
+  sign: "Open the agreement",
+}
+
 function numberedReplies(choices: Choice[]) {
   return `Reply with a number:\n${choices.map((c, i) => `${i + 1} — ${c.label}`).join("\n")}`
 }
@@ -34,6 +42,7 @@ export function WhatsAppChat({ channel = "whatsapp", onBeat }: { channel?: Chann
   const [draft, setDraft] = useState("")
   const runId = useRef(0)
   const nextId = useRef(1)
+  const captureNext = useRef<string | undefined>(undefined)
   const deferred = useRef(new Set<ModuleId>())
   const scrollerRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
@@ -109,6 +118,7 @@ export function WhatsAppChat({ channel = "whatsapp", onBeat }: { channel?: Chann
       const alive = () => runId.current === id
       setChoices(undefined)
       setSheet(undefined)
+      captureNext.current = undefined
       onBeat?.(scene.beat)
 
       if (scene.complete) {
@@ -143,12 +153,12 @@ export function WhatsAppChat({ channel = "whatsapp", onBeat }: { channel?: Chann
         push({ kind: "link", title: "Sign in your browser", body: "About a minute, already signed in — no code to type.", href: signHref, cta: "Open" })
         offer([{ label: "Done, I've signed it", next: "signed" }])
       } else if (scene.sheet) {
-        await sleep(600)
-        if (alive()) setSheet(scene.sheet)
+        // Let the student read the message, then open the sheet when they're ready rather than sliding it over the text.
+        offer([{ label: sheetPrompt[scene.sheet], next: `${SHEET_PREFIX}${scene.sheet}` }])
       } else if (scene.auto) {
-        await sleep(900)
-        if (alive()) void play(scene.auto)
+        offer([{ label: "Got it", next: scene.auto }])
       } else {
+        captureNext.current = scene.capture
         offer(scene.choices)
       }
     },
@@ -177,6 +187,11 @@ export function WhatsAppChat({ channel = "whatsapp", onBeat }: { channel?: Chann
   }
 
   function pick(c: Choice, index: number) {
+    if (c.next.startsWith(SHEET_PREFIX)) {
+      setChoices(undefined)
+      setSheet(c.next.slice(SHEET_PREFIX.length) as Scene["sheet"])
+      return
+    }
     say(sms ? String(index + 1) : c.label, c.next)
   }
 
@@ -185,7 +200,18 @@ export function WhatsAppChat({ channel = "whatsapp", onBeat }: { channel?: Chann
     if (!text) return
     setDraft("")
     const numbered = choices && /^\d$/.test(text) ? choices[Number(text) - 1] : undefined
-    say(text, numbered ? numbered.next : routeFreeText(text))
+    if (numbered) {
+      pick(numbered, Number(text) - 1)
+      return
+    }
+    // Mid-question scenes capture whatever the student writes as their answer instead of routing by keyword.
+    if (captureNext.current) {
+      const next = captureNext.current
+      captureNext.current = undefined
+      say(text, next)
+      return
+    }
+    say(text, routeFreeText(text))
   }
 
   function dismissSheet() {
@@ -193,13 +219,13 @@ export function WhatsAppChat({ channel = "whatsapp", onBeat }: { channel?: Chann
     setSheet(undefined)
     if (kind === "upload") {
       offer([
-        { label: "Send my CV now", next: "credit-upload" },
-        { label: "Skip this step", next: "credit-skip" },
+        { label: "Do it now", next: "credit-upload" },
+        { label: "I'll send it later", next: "credit-later" },
       ])
-    } else if (kind === "id-upload") {
+    } else if (kind === "transcript") {
       offer([
-        { label: "Take the photo now", next: "identity-upload" },
-        { label: "I'll do it later", next: "identity-later" },
+        { label: "Do it now", next: "school-record-upload" },
+        { label: "I'll send it later", next: "school-record-later" },
       ])
     } else if (kind === "sign") {
       offer([{ label: "Open the agreement again", next: "sign" }])
@@ -210,7 +236,7 @@ export function WhatsAppChat({ channel = "whatsapp", onBeat }: { channel?: Chann
     const kind = sheet
     setSheet(undefined)
     push({ kind: "attachment", from: "me", ...a })
-    void play(kind === "id-upload" ? "identity-read" : "credit-read")
+    void play(kind === "transcript" ? "school-record-read" : "credit-read")
   }
 
   function onSigned(image?: string) {
@@ -327,7 +353,7 @@ export function WhatsAppChat({ channel = "whatsapp", onBeat }: { channel?: Chann
         }}
       >
         {sms && (
-          <button type="button" aria-label="Camera" onClick={() => setSheet(sheet ?? "id-upload")} className="px-1 text-foreground/50">
+          <button type="button" aria-label="Camera" onClick={() => setSheet(sheet ?? "transcript")} className="px-1 text-foreground/50">
             <Camera className="size-6" aria-hidden />
           </button>
         )}
@@ -373,7 +399,7 @@ export function WhatsAppChat({ channel = "whatsapp", onBeat }: { channel?: Chann
       </form>
 
       {sheet === "upload" && <UploadSheet purpose="cv" onPick={onUpload} onClose={dismissSheet} />}
-      {sheet === "id-upload" && <UploadSheet purpose="id" onPick={onUpload} onClose={dismissSheet} />}
+      {sheet === "transcript" && <UploadSheet purpose="transcript" onPick={onUpload} onClose={dismissSheet} />}
       {sheet === "sign" && <SignSheet name={fullName} onSigned={onSigned} onClose={dismissSheet} />}
     </div>
   )

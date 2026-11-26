@@ -23,7 +23,7 @@ function SheetFrame({ title, onClose, children }: { title: string; onClose: () =
 
 export type Attachment = { name: string; meta: string; image?: boolean; preview?: string }
 
-export type UploadPurpose = "cv" | "id"
+export type UploadPurpose = "cv" | "transcript"
 
 type UploadOption = { icon: typeof Camera; label: string; hint: string; result: Attachment }
 
@@ -36,22 +36,22 @@ const uploadOptions: Record<UploadPurpose, { title: string; options: UploadOptio
       { icon: FileText, label: "Document", hint: "PDF or Word from your files or Drive", result: { name: "Sarah_Bilkey_CV.pdf", meta: "PDF · 184 KB" } },
     ],
   },
-  id: {
-    title: "Send a photo of your ID",
+  transcript: {
+    title: "Send your academic transcript",
     options: [
       {
         icon: Camera,
         label: "Camera",
-        hint: "Photograph your passport or certificate",
-        result: { name: "IMG_2044.jpg", meta: "Photo · 2.4 MB", image: true, preview: "/images/whatsapp/passport-photo.png" },
+        hint: "Photograph the whole transcript page",
+        result: { name: "IMG_2044.jpg", meta: "Photo · 2.4 MB", image: true, preview: "/images/whatsapp/transcript-photo.png" },
       },
       {
         icon: Images,
         label: "Photos",
-        hint: "Pick one you've already taken",
-        result: { name: "IMG_1120.jpg", meta: "Photo · 2.2 MB", image: true, preview: "/images/whatsapp/passport-photo.png" },
+        hint: "Pick a scan from your camera roll",
+        result: { name: "IMG_1120.jpg", meta: "Photo · 2.2 MB", image: true, preview: "/images/whatsapp/transcript-photo.png" },
       },
-      { icon: FileText, label: "Document", hint: "A scan saved as PDF", result: { name: "Passport_scan.pdf", meta: "PDF · 1.1 MB" } },
+      { icon: FileText, label: "Document", hint: "A PDF from your files or Drive", result: { name: "Transcript.pdf", meta: "PDF · 512 KB" } },
     ],
   },
 }

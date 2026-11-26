@@ -12,13 +12,20 @@ const happyPath = [
   "intro",
   "resume",
   "identity",
-  "identity-upload",
-  "identity-read",
+  "identity-confirmed",
   "money",
   "money-loan",
+  "school-record",
+  "school-record-upload",
+  "school-record-read",
   "credit",
   "credit-upload",
   "credit-read",
+  "statement",
+  "statement-q1",
+  "statement-q2",
+  "statement-q3",
+  "statement-done",
   "sign",
   "signed",
   "thanks",
@@ -28,9 +35,9 @@ type Ctx = ReturnType<typeof buildContext>
 
 function buildContext(brandId: BrandId, channel: Channel) {
   const brand = getBrand(brandId)
-  // Mirror the /whatsapp page: photo ID is still outstanding so the thread can ask for it.
+  // Mirror the /whatsapp page: identity and transcript are still outstanding so the thread can cover them.
   const fixture = returningFixture(brandId)
-  const { identity: _id, ...modules } = fixture.modules
+  const { identity: _id, "school-record": _sr, ...modules } = fixture.modules
   const app = { ...fixture, modules }
   const course = getCourse(app.courseId) ?? defaultCourseFor(brandId)
   const rep = getRep(app.rep)!
@@ -115,13 +122,13 @@ function renderSheet(ctx: Ctx, sheet: NonNullable<Scene["sheet"]>): string[] {
         ]
       : ["_Signature sheet opens: summary of the agreement and a finger-signature pad. Signing → `signed`; dismissing offers “Open the agreement again”._"]
   }
-  if (sheet === "id-upload") {
+  if (sheet === "transcript") {
     return [
-      `_Attach sheet opens (Camera / Photos / Document). Sending a photo → \`identity-read\`; dismissing offers “Take the photo now” / “I'll do it later”.${sms ? " Over SMS the photo travels as MMS." : ""}_`,
+      `_Attach sheet opens (Camera / Photos / Document). Sending a photo → \`school-record-read\`; dismissing offers “Do it now” / “I'll send it later”.${sms ? " Over SMS the photo travels as MMS." : ""}_`,
     ]
   }
   return [
-    `_Attach sheet opens (Camera / Photos / Document). Sending a CV → \`credit-read\`; dismissing offers “Send my CV now” / “Skip this step”.${sms ? " Over SMS the file travels as MMS." : ""}_`,
+    `_Attach sheet opens (Camera / Photos / Document). Sending a CV → \`credit-read\`; dismissing offers “Do it now” / “I'll send it later”.${sms ? " Over SMS the file travels as MMS." : ""}_`,
   ]
 }
 
@@ -132,6 +139,7 @@ function renderScene(ctx: Ctx, scene: Scene, heading: string): string[] {
   else if (scene.auto) lines.push(`_Continues automatically → \`${scene.auto}\`_`, "")
   else if (scene.choices) lines.push(...renderChoices(ctx, scene.choices), "")
   else lines.push("_End of thread._", "")
+  if (scene.capture) lines.push(`_Or the student types their own answer → \`${scene.capture}\`._`, "")
   if (scene.complete) {
     lines.push(`_Application updated: ${moduleMeta[scene.complete.module].title} → ${scene.complete.status}._`, "")
   }
@@ -166,7 +174,7 @@ export function buildTranscript(brandId: BrandId, channel: Channel): string {
     "",
     "## 1. Happy path (read top to bottom)",
     "",
-    `The student taps “Let's finish it now”, photographs their passport, picks ${brand.country === "AU" ? "FEE-HELP" : "a StudyLink loan"}, sends a CV, and signs.`,
+    `The student taps “Let's finish it now”, confirms their name and date of birth, picks ${brand.country === "AU" ? "FEE-HELP" : "a StudyLink loan"}, uploads their transcript and CV, answers three short questions, and signs.`,
     "",
   ]
 
@@ -181,7 +189,7 @@ export function buildTranscript(brandId: BrandId, channel: Channel): string {
     const chosen = options.find((c) => c.next === id) ?? options.find((c) => c.next === "resume")
     if (chosen) out.push(`${speaker(ctx, "me")} ${sms ? String(options.indexOf(chosen) + 1) : chosen.label}`, "")
     previous = scene
-    if (id === "identity-read") out.push(renderMessage(ctx, { kind: "attachment", from: "me", name: "IMG_2044.jpg", meta: "Photo · 2.4 MB", image: true }), "")
+    if (id === "school-record-read") out.push(renderMessage(ctx, { kind: "attachment", from: "me", name: "IMG_2044.jpg", meta: "Photo · 2.4 MB", image: true }), "")
     if (id === "credit-read") out.push(renderMessage(ctx, { kind: "attachment", from: "me", name: "Sarah_Bilkey_CV.pdf", meta: "PDF · 184 KB" }), "")
     if (id === "signed") {
       out.push(sms ? `${speaker(ctx, "me")} 1` : renderMessage(ctx, { kind: "signed", from: "me", name: ctx.fullName }), "")
@@ -214,7 +222,9 @@ export function buildTranscript(brandId: BrandId, channel: Channel): string {
     "Anything the student types instead of tapping is routed by keyword:",
     "",
     "- placement / practicum / hours / agency → `q-placement`",
-    "- passport / photo ID / licence / birth certificate / citizenship / ID → `identity`",
+    "- transcript / results / grades / NCEA / USI → `school-record`",
+    "- essay / statement / personal statement / why counselling → `statement`",
+    "- name / date of birth / ID → `identity`",
     "- fee / cost / price / pay / loan / money / afford → `q-fees`",
     "- later / tomorrow / tonight / busy / next week / remind → `later`",
     `- human / person / advisor / call / talk / ${rep.name} → \`human\``,

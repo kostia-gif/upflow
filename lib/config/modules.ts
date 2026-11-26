@@ -13,17 +13,13 @@ export type ModuleMeta = {
 export const moduleMeta: Record<ModuleId, ModuleMeta> = {
   identity: {
     id: "identity",
-    title: "Prove who you are",
+    title: "Confirm your details",
     description: {
-      NZ: "Passport, birth certificate or citizenship certificate. Take a photo, we read it.",
-      AU: "Passport, birth certificate or citizenship certificate. Take a photo, we read it.",
+      NZ: "Just check your name and date of birth — no documents needed.",
+      AU: "Just check your name and date of birth — no documents needed.",
     },
-    minutes: 2,
-    timeLabel: "2 min",
-    needs: {
-      NZ: "Photo ID — passport, birth certificate or citizenship certificate",
-      AU: "Photo ID — passport, birth certificate or citizenship certificate",
-    },
+    minutes: 0.5,
+    timeLabel: "30 sec",
   },
   address: {
     id: "address",
@@ -34,16 +30,16 @@ export const moduleMeta: Record<ModuleId, ModuleMeta> = {
   },
   "school-record": {
     id: "school-record",
-    title: "Your school record",
+    title: "Your academic transcript",
     description: {
-      NZ: "Your NSN, or a photo of your NCEA record.",
-      AU: "Your USI, and a transcript if you have one.",
+      NZ: "Upload your NCEA record — we read the results for you.",
+      AU: "Upload your transcript — we read the results for you.",
     },
     minutes: 1,
     timeLabel: "1 min",
     needs: {
-      NZ: "Your NSN number, or a photo of your NCEA record",
-      AU: "Your USI, or a school transcript if you have one",
+      NZ: "Your NCEA record or transcript — a photo is fine",
+      AU: "Your academic transcript — a photo is fine",
     },
   },
   government: {
@@ -91,11 +87,11 @@ export const moduleMeta: Record<ModuleId, ModuleMeta> = {
     id: "statement",
     title: "Why counselling",
     description: {
-      NZ: "300 words, or a voice note — we'll write it up.",
-      AU: "300 words, or a voice note — we'll write it up.",
+      NZ: "Three quick questions — a sentence each, no essay.",
+      AU: "Three quick questions — a sentence each, no essay.",
     },
-    minutes: 5,
-    timeLabel: "5 min",
+    minutes: 3,
+    timeLabel: "3 min",
   },
   portfolio: {
     id: "portfolio",
