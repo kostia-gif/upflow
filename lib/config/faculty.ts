@@ -17,8 +17,7 @@ export const facultyLeads: Record<BrandId, FacultyLead> = {
     name: "Dr Lee",
     role: "Program Director, Counselling",
     photo: "/faculty/aipc.png",
-    quote:
-      "I still believe one good conversation can change someone's week. Apply today, and you're on your way to being the person who has those conversations for a living.",
+    quote: "One good conversation can change someone's week — I can't wait to see you become the person who has them.",
   },
   nzma: {
     name: "Chef Renee",
