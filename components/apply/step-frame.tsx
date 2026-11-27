@@ -55,6 +55,7 @@ export function StepFrame({
   secondary,
   back = true,
   showRep = true,
+  showWhatsApp = true,
   footer,
 }: {
   step?: number
@@ -69,6 +70,7 @@ export function StepFrame({
   secondary?: ReactNode
   back?: boolean
   showRep?: boolean
+  showWhatsApp?: boolean
   footer?: ReactNode
 }) {
   const router = useRouter()
@@ -93,7 +95,7 @@ export function StepFrame({
                   <ProgressSegments step={step} total={totalSteps} />
                 </div>
               )}
-              <WhatsAppPopOut />
+              {showWhatsApp && <WhatsAppPopOut />}
             </div>
           )}
           <div className="flex flex-col gap-3">

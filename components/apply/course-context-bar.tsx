@@ -9,7 +9,7 @@ import { getBrand } from "@/lib/config/brands"
 import { cn } from "@/lib/utils"
 import { NativeSelect, PrimaryButton } from "./primitives"
 
-export function CourseContextBar() {
+export function CourseContextBar({ showPlaces = true }: { showPlaces?: boolean }) {
   const { app, brand, course, dispatch } = useApplication()
   const [open, setOpen] = useState(false)
   const campus = course.campuses.find((c) => c.id === app.campusId)
@@ -26,7 +26,7 @@ export function CourseContextBar() {
             {[campus?.name, intake?.label].filter(Boolean).join(" · ") || brand.name}
           </p>
         </div>
-        {typeof places === "number" && (
+        {showPlaces && typeof places === "number" && (
           <span
             className={cn(
               "hidden shrink-0 rounded-full px-2 py-0.5 text-xs font-medium sm:inline",
@@ -115,17 +115,19 @@ export function ChangeCourseSheet({ open, onOpenChange }: { open: boolean; onOpe
               ))}
             </NativeSelect>
           </label>
-          <label className="flex flex-col gap-1.5 text-sm font-medium">
-            Start date
-            <NativeSelect value={intakeId} onChange={(e) => setIntakeId(e.target.value)}>
-              <option value="">Choose a start date</option>
-              {selected.intakes.map((i) => (
-                <option key={i.id} value={i.id}>
-                  {i.label}
-                </option>
-              ))}
-            </NativeSelect>
-          </label>
+          {selected.intakes.length > 0 && (
+            <label className="flex flex-col gap-1.5 text-sm font-medium">
+              Start date
+              <NativeSelect value={intakeId} onChange={(e) => setIntakeId(e.target.value)}>
+                <option value="">Choose a start date</option>
+                {selected.intakes.map((i) => (
+                  <option key={i.id} value={i.id}>
+                    {i.label}
+                  </option>
+                ))}
+              </NativeSelect>
+            </label>
+          )}
           <PrimaryButton onClick={save} arrow={false}>
             Save
           </PrimaryButton>

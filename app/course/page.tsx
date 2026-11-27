@@ -7,14 +7,17 @@ import { useState } from "react"
 import { Segmented } from "@/components/apply/segmented"
 import { Eyebrow } from "@/components/apply/primitives"
 import { useApplication } from "@/lib/application/context"
-import { defaultCourseFor } from "@/lib/config/courses"
+import { defaultCourseFor, resolveCourse } from "@/lib/config/courses"
 import { totalMinutesFor } from "@/lib/config/modules"
 import { getRep } from "@/lib/config/reps"
 import { cn, frameClass } from "@/lib/utils"
 
 export default function CoursePage() {
   const { state, brand } = useApplication()
-  const course = defaultCourseFor(state.dev.brand)
+  const course = resolveCourse(
+    { courseId: defaultCourseFor(state.dev.brand).id, brand: state.dev.brand },
+    !!state.dev.aipcLegacy,
+  )
   const rep = getRep(brand.defaultAdvisor)
   const [campusId, setCampusId] = useState(course.campuses[0].id)
   const [intakeId, setIntakeId] = useState(course.intakes[0].id)

@@ -6,7 +6,15 @@ import { useEffect, useRef, useState } from "react"
 import { useApplication } from "@/lib/application/context"
 import { cn } from "@/lib/utils"
 
-export function RepCard({ className, intro }: { className?: string; intro?: string }) {
+export function RepCard({
+  className,
+  intro,
+  channel = "whatsapp",
+}: {
+  className?: string
+  intro?: string
+  channel?: "whatsapp" | "text"
+}) {
   const { app, rep } = useApplication()
   const ref = useRef<HTMLDivElement>(null)
   const [offscreen, setOffscreen] = useState(false)
@@ -20,6 +28,12 @@ export function RepCard({ className, intro }: { className?: string; intro?: stri
   }, [rep])
 
   if (!rep) return null
+  const viaText = channel === "text"
+  const messageHref = viaText
+    ? rep.phone.startsWith("tel:")
+      ? `sms:${rep.phone.slice(4)}`
+      : rep.phone
+    : rep.whatsapp
   const line =
     intro ??
     (app.repAssigned === "assigned"
@@ -45,8 +59,8 @@ export function RepCard({ className, intro }: { className?: string; intro?: stri
         </div>
         <div className="flex shrink-0 gap-1.5">
           <a
-            href={rep.whatsapp}
-            aria-label={`WhatsApp ${rep.name}`}
+            href={messageHref}
+            aria-label={viaText ? `Text ${rep.name}` : `WhatsApp ${rep.name}`}
             className="flex size-10 items-center justify-center rounded-full bg-background text-brand shadow-sm hover:bg-brand hover:text-brand-foreground"
           >
             <MessageCircle className="size-5" aria-hidden />
@@ -62,8 +76,8 @@ export function RepCard({ className, intro }: { className?: string; intro?: stri
       </div>
       {offscreen && (
         <a
-          href={rep.whatsapp}
-          aria-label={`Message ${rep.name} on WhatsApp`}
+          href={messageHref}
+          aria-label={viaText ? `Text ${rep.name}` : `Message ${rep.name} on WhatsApp`}
           className="fixed bottom-28 right-4 z-30 flex items-center gap-2 rounded-full bg-background p-1 pr-3 shadow-lg ring-1 ring-border sm:right-[calc(50%-240px+1rem)]"
         >
           <Image src={rep.photo} alt="" width={36} height={36} className="size-9 rounded-full object-cover" />

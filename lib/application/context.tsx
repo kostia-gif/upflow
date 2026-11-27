@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useReducer, useState, type ReactNode } from "react"
 import { getBrand } from "@/lib/config/brands"
-import { defaultCourseFor, getCourse } from "@/lib/config/courses"
+import { resolveCourse } from "@/lib/config/courses"
 import { moduleMeta, totalMinutesFor } from "@/lib/config/modules"
 import { getRep } from "@/lib/config/reps"
 import type { Application, BrandConfig, CourseConfig, ModuleId, Rep } from "@/lib/types"
@@ -68,10 +68,11 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
   const value = useMemo<Ctx>(() => {
     const app = state.app
     const brand = getBrand(app.brand)
-    const course = getCourse(app.courseId) ?? defaultCourseFor(app.brand)
-    const modules = moduleList(app)
+    const legacy = !!state.dev.aipcLegacy
+    const course = resolveCourse(app, legacy)
+    const modules = moduleList(app, legacy)
     const minutesLeft = modules.filter((m) => !isComplete(app, m)).reduce((sum, m) => sum + moduleMeta[m].minutes, 0)
-    const applySteps = 3
+    const applySteps = course.flow === "online-enrol-pay" ? 4 : 3
     const totalMinutes = totalMinutesFor(course, brand.country)
     return {
       state,
@@ -80,9 +81,9 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
       course,
       rep: getRep(app.rep),
       modules,
-      progress: progress(app),
+      progress: progress(app, legacy),
       minutesLeft,
-      nextModule: (after) => nextTodoModule(app, after),
+      nextModule: (after) => nextTodoModule(app, after, legacy),
       dispatch,
       applySteps,
       totalSteps: applySteps + modules.length,

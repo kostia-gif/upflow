@@ -1,4 +1,5 @@
-import type { Country, CourseConfig, ModuleId } from "@/lib/types"
+import { getBrand } from "@/lib/config/brands"
+import type { Country, CourseConfig, FlowId, ModuleId } from "@/lib/types"
 
 export type ModuleMeta = {
   id: ModuleId
@@ -56,8 +57,8 @@ export const moduleMeta: Record<ModuleId, ModuleMeta> = {
     id: "money",
     title: "Paying for it",
     description: {
-      NZ: "You're in and you're verified — here's how people usually pay. Nothing to decide or pay today.",
-      AU: "You're in and you're verified — here's how people usually pay. Nothing to decide or pay today.",
+      NZ: "Your place is saved — here's how people usually pay. Nothing to decide or pay today.",
+      AU: "Your place is saved — here's how people usually pay. Nothing to decide or pay today.",
     },
     minutes: 1.5,
     timeLabel: "2 min",
@@ -134,6 +135,88 @@ export const moduleMeta: Record<ModuleId, ModuleMeta> = {
     minutes: 1,
     timeLabel: "1 min",
   },
+  usi: {
+    id: "usi",
+    title: "Your USI",
+    description: {
+      NZ: "Your Unique Student Identifier. Everyone studying in Australia needs one, and you keep it for life.",
+      AU: "Your Unique Student Identifier. Everyone studying in Australia needs one, and you keep it for life.",
+    },
+    minutes: 1,
+    timeLabel: "1 min",
+    needs: {
+      NZ: "Your USI if you have it, or one form of ID so we can set one up",
+      AU: "Your USI if you have it, or one form of ID so we can set one up",
+    },
+  },
+  "support-needs": {
+    id: "support-needs",
+    title: "Support you might need",
+    description: {
+      NZ: "Anything that would make studying easier for you.",
+      AU: "Anything that would make studying easier for you.",
+    },
+    minutes: 1,
+    timeLabel: "1 min",
+  },
+  "au-stats": {
+    id: "au-stats",
+    title: "Government questions",
+    description: {
+      NZ: "Three short sets of questions we're required to ask.",
+      AU: "Three short sets of questions we're required to ask.",
+    },
+    minutes: 2,
+    timeLabel: "2 min",
+  },
+  degree: {
+    id: "degree",
+    title: "Your degree",
+    description: {
+      NZ: "The degree you're using to get in.",
+      AU: "The degree you're using to get in.",
+    },
+    minutes: 1,
+    timeLabel: "1 min",
+    needs: {
+      NZ: "Your degree certificate or transcript — a photo is fine",
+      AU: "Your degree certificate or transcript — a photo is fine",
+    },
+  },
+  "work-history": {
+    id: "work-history",
+    title: "Your work history",
+    description: {
+      NZ: "Where you've worked and what you did there.",
+      AU: "Where you've worked and what you did there.",
+    },
+    minutes: 1,
+    timeLabel: "1 min",
+    needs: {
+      NZ: "A CV, if you have one",
+      AU: "A CV, if you have one",
+    },
+  },
+  "entry-statement": {
+    id: "entry-statement",
+    title: "Three quick questions",
+    description: {
+      NZ: "A few sentences each. No essay.",
+      AU: "A few sentences each. No essay.",
+    },
+    minutes: 4,
+    timeLabel: "4 min",
+  },
+  pay: {
+    id: "pay",
+    title: "Pay and enrol",
+    description: {
+      NZ: "Check your order and pay. Last step.",
+      AU: "Check your order and pay. Last step.",
+    },
+    minutes: 1,
+    timeLabel: "1 min",
+  },
 }
 
 const countryModules: Record<Country, ModuleId[]> = {
@@ -155,9 +238,30 @@ export function modulesFor(course: CourseConfig, country: Country): ModuleId[] {
   return result
 }
 
+const flowModules: Record<Exclude<FlowId, "nz-baseline">, ModuleId[]> = {
+  "online-enrol-pay": ["identity", "address", "usi", "support-needs", "au-stats", "pay"],
+  "online-apply-assess": [
+    "identity",
+    "address",
+    "degree",
+    "work-history",
+    "entry-statement",
+    "usi",
+    "support-needs",
+    "au-stats",
+    "money",
+    "sign",
+  ],
+}
+
+export function modulesForFlow(course: CourseConfig): ModuleId[] {
+  if (course.flow === "nz-baseline") return modulesFor(course, getBrand(course.brand).country)
+  return [...flowModules[course.flow]]
+}
+
 /** Documents the applicant may want on hand for this course, in flow order. */
 export function needsFor(course: CourseConfig, country: Country): string[] {
-  return modulesFor(course, country)
+  return modulesForFlow(course)
     .map((m) => moduleMeta[m].needs?.[country])
     .filter((n): n is string => !!n)
 }

@@ -3,12 +3,16 @@
 import Link from "next/link"
 import {
   Banknote,
+  Briefcase,
   Camera,
   Check,
   ChefHat,
   ClipboardList,
+  CreditCard,
   FileText,
+  Fingerprint,
   GraduationCap,
+  HeartHandshake,
   Landmark,
   Lock,
   MapPin,
@@ -36,6 +40,13 @@ export const moduleIcons: Record<ModuleId, LucideIcon> = {
   "placement-check": ClipboardList,
   kit: ChefHat,
   sign: PenLine,
+  usi: Fingerprint,
+  "support-needs": HeartHandshake,
+  "au-stats": Landmark,
+  degree: GraduationCap,
+  "work-history": Briefcase,
+  "entry-statement": MessageSquareText,
+  pay: CreditCard,
 }
 
 export function StatusPill({ status, locked }: { status: ModuleStatus; locked?: boolean }) {
@@ -75,6 +86,8 @@ export function ModuleRow({
   locked,
   compact,
   highlight,
+  basePath = "/apply/ready",
+  description,
 }: {
   id: ModuleId
   status: ModuleStatus
@@ -82,6 +95,9 @@ export function ModuleRow({
   locked?: boolean
   compact?: boolean
   highlight?: boolean
+  basePath?: string
+  /** Replaces the step's standard description. */
+  description?: string
 }) {
   const meta = moduleMeta[id]
   const Icon = moduleIcons[id]
@@ -100,7 +116,7 @@ export function ModuleRow({
           <span className="truncate text-base font-semibold">{meta.title}</span>
           <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">{meta.timeLabel}</span>
         </span>
-        {!compact && <span className="text-sm leading-snug text-muted-foreground">{meta.description[country]}</span>}
+        {!compact && <span className="text-sm leading-snug text-muted-foreground">{description ?? meta.description[country]}</span>}
       </span>
       <StatusPill status={status} locked={locked && status !== "done"} />
     </>
@@ -113,7 +129,7 @@ export function ModuleRow({
   )
   if (locked || compact) return <div className={cls}>{inner}</div>
   return (
-    <Link href={`/apply/ready/${id}`} className={cls}>
+    <Link href={`${basePath}/${id}`} className={cls}>
       {inner}
     </Link>
   )

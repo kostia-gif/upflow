@@ -1,9 +1,9 @@
 import { Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-const steps = ["Applied", "Getting ready", "Offer", "Enrolled"] as const
+const DEFAULT_STEPS: readonly string[] = ["Applied", "Getting ready", "Offer", "Enrolled"]
 
-export function StatusTracker({ current }: { current: (typeof steps)[number] }) {
+export function StatusTracker({ current, steps = DEFAULT_STEPS }: { current: string; steps?: readonly string[] }) {
   const currentIndex = steps.indexOf(current)
   return (
     <ol className="flex items-start" aria-label="Application progress">

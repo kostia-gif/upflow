@@ -36,6 +36,24 @@ export type ModuleId =
   | "placement-check"
   | "kit"
   | "sign"
+  | "usi"
+  | "support-needs"
+  | "au-stats"
+  | "degree"
+  | "work-history"
+  | "entry-statement"
+  | "pay"
+
+export type FlowId = "nz-baseline" | "online-enrol-pay" | "online-apply-assess"
+
+export type PricingTier = {
+  majorsPaid: number
+  upfront: number
+  fortnightly: number
+  fortnights: number
+  monthly: number
+  months: number
+}
 
 export type EligibilityQuestion = {
   id: string
@@ -52,6 +70,7 @@ export type CourseConfig = {
   title: string
   shortTitle: string
   brand: BrandId
+  flow: FlowId
   school: string
   campuses: { id: string; name: string; placesLeft: number }[]
   intakes: { id: string; label: string; date: string }[]
@@ -66,6 +85,9 @@ export type CourseConfig = {
   extraModules: ModuleId[]
   fundingOptions: { id: FundingId; title: string; description: string }[]
   orientation: string
+  majors?: { id: string; title: string }[]
+  pricing?: PricingTier[]
+  practical?: { sessions: number; each: number }
 }
 
 export type FundingId = "loan" | "self" | "other"
@@ -112,4 +134,11 @@ export type Application = {
   remindAt?: string
   remindLabel?: string
   remindChannel?: "sms" | "whatsapp"
+  majors?: string[]
+  paymentPlan?: "upfront" | "monthly" | "fortnightly" | "contact"
+  offerCode?: string
+  pathway?: "aipc-bachelor" | "counselling-bachelor" | "other-bachelor" | "none"
+  studyMode?: "online" | "sydney"
+  citizenship?: string
+  paidAt?: string
 }

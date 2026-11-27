@@ -17,7 +17,8 @@ import {
 import type { ComponentType } from "react"
 import { useApplication } from "@/lib/application/context"
 import { brandOrder, brands } from "@/lib/config/brands"
-import { defaultCourseFor } from "@/lib/config/courses"
+import { newApplication } from "@/lib/application/reducer"
+import { AIPC_DIPLOMA_ID, AIPC_MASTER_ID, defaultCourseFor } from "@/lib/config/courses"
 import type { BrandId } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
@@ -97,9 +98,77 @@ const comparison = [
   },
 ]
 
-const schoolBlurbs: Record<BrandId, string> = {
-  aipc:
-    "Domestic postgraduate, Australia. Adds a credit-for-experience check and a spoken-or-written personal statement, with FEE-HELP as the funding path.",
+const spine1Brands = brandOrder.filter((id) => defaultCourseFor(id).flow === "nz-baseline")
+
+const spine2Tracks = [
+  {
+    courseId: AIPC_DIPLOMA_ID,
+    eyebrow: "Track 2A · Australia",
+    title: "Diploma of Counselling: enrol and pay",
+    blurb:
+      "Self-paced online diploma. A purchase, not an application: add majors, choose a payment plan, pay and start the same day.",
+    cta: "Walk the Diploma flow",
+  },
+  {
+    courseId: AIPC_MASTER_ID,
+    eyebrow: "Track 2B · Australia",
+    title: "Master of Counselling: apply and assess",
+    blurb:
+      "Postgraduate, assessed by admissions. Pick a way in, send a degree and work history, answer three short questions, and submit.",
+    cta: "Walk the Master flow",
+  },
+]
+
+function FlowCard({
+  brand,
+  eyebrow,
+  title,
+  blurb,
+  cta,
+  onStart,
+  returningHref,
+}: {
+  brand: BrandId
+  eyebrow: string
+  title?: string
+  blurb: string
+  cta: string
+  onStart: () => void
+  returningHref: string
+}) {
+  const b = brands[brand]
+  return (
+    <div className="group flex flex-col gap-5 rounded-3xl border border-border p-6 text-left transition-colors hover:border-foreground/30">
+      <div className="flex items-center justify-between gap-3">
+        <Image src={b.logo} alt={b.name} width={120} height={36} className="h-7 w-auto" />
+        <span className="size-3 shrink-0 rounded-full" style={{ background: b.primary }} aria-hidden />
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{eyebrow}</span>
+        {title && <h4 className="text-pretty text-base font-semibold leading-snug text-foreground">{title}</h4>}
+        <p className="text-sm leading-relaxed text-muted-foreground">{blurb}</p>
+      </div>
+      <div className="mt-auto flex items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={onStart}
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-foreground"
+        >
+          {cta}
+          <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
+        </button>
+        <Link
+          href={returningHref}
+          className="text-xs font-medium text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+        >
+          Already applied?
+        </Link>
+      </div>
+    </div>
+  )
+}
+
+const schoolBlurbs: Partial<Record<BrandId, string>> = {
   nzma:
     "Vocational trades, New Zealand. Age and NCEA gating, a StudyLink funding walk-through, and a kit step so knives and whites are sized before day one.",
   elite:
@@ -117,6 +186,15 @@ export default function IntroPage() {
     router.push("/course")
   }
 
+  function openTrack(courseId: string) {
+    dispatch({
+      type: "SET_DEV",
+      dev: { aipcLegacy: false, returning: false, returningVerified: false, entryPath: "B" },
+    })
+    dispatch({ type: "LOAD_APP", app: { ...newApplication("aipc", courseId), entryPath: "B" } })
+    router.push(`/apply?course=${courseId}`)
+  }
+
   return (
     <div className="min-h-svh w-full bg-background">
       <main className="mx-auto flex w-full max-w-5xl flex-col gap-20 px-6 py-16 sm:px-10 sm:py-24">
@@ -130,60 +208,58 @@ export default function IntroPage() {
         </h1>
         <p className="max-w-2xl text-pretty text-lg leading-relaxed text-muted-foreground">
           UP Apply is a working prototype of a three-minute application followed by a guided, one-thing-at-a-time
-          get-ready flow. The same spine runs under AIPC, NZMA, Elite and Yoobee — what changes underneath is
-          configuration, not a rebuild.
+          get-ready flow. One spine runs NZMA, Elite and Yoobee, and a second runs AIPC&apos;s online courses — what
+          changes underneath is configuration, not a rebuild.
         </p>
       </header>
 
       <section className="flex flex-col gap-8">
         <div className="flex flex-col gap-2">
-          <h2 className="font-sans text-2xl font-semibold tracking-tight text-foreground">Four schools, one spine</h2>
+          <h2 className="font-sans text-2xl font-semibold tracking-tight text-foreground">Four schools, two spines</h2>
           <p className="max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground">
-            Pick a school to walk its course page and application exactly as a student would.
+            Pick a flow to walk it exactly as a student would.
           </p>
         </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {brandOrder.map((id) => {
-            const b = brands[id]
-            const course = defaultCourseFor(id)
-            return (
-              <div
-                key={id}
-                className="group flex flex-col gap-5 rounded-3xl border border-border p-6 text-left transition-colors hover:border-foreground/30"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <Image src={b.logo} alt={b.name} width={120} height={36} className="h-7 w-auto" />
-                  <span
-                    className="size-3 shrink-0 rounded-full"
-                    style={{ background: b.primary }}
-                    aria-hidden
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    {course.shortTitle} · {b.country === "AU" ? "Australia" : "New Zealand"}
-                  </span>
-                  <p className="text-sm leading-relaxed text-muted-foreground">{schoolBlurbs[id]}</p>
-                </div>
-                <div className="mt-auto flex items-center justify-between gap-3">
-                  <button
-                    type="button"
-                    onClick={() => openSchool(id)}
-                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-foreground"
-                  >
-                    Walk the {b.shortName} flow
-                    <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
-                  </button>
-                  <Link
-                    href={`/apply/welcome-back?brand=${id}`}
-                    className="text-xs font-medium text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
-                  >
-                    Already applied?
-                  </Link>
-                </div>
-              </div>
-            )
-          })}
+
+        <div className="flex flex-col gap-4">
+          <h3 className="text-base font-semibold text-foreground">
+            Spine 1: NZ domestic schools, baseline application
+          </h3>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {spine1Brands.map((id) => {
+              const b = brands[id]
+              const course = defaultCourseFor(id)
+              return (
+                <FlowCard
+                  key={id}
+                  brand={id}
+                  eyebrow={`${course.shortTitle} · New Zealand`}
+                  blurb={schoolBlurbs[id] ?? ""}
+                  cta={`Walk the ${b.shortName} flow`}
+                  onStart={() => openSchool(id)}
+                  returningHref={`/apply/welcome-back?brand=${id}`}
+                />
+              )
+            })}
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <h3 className="text-base font-semibold text-foreground">Spine 2: Online providers</h3>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {spine2Tracks.map((t) => (
+              <FlowCard
+                key={t.courseId}
+                brand="aipc"
+                eyebrow={t.eyebrow}
+                title={t.title}
+                blurb={t.blurb}
+                cta={t.cta}
+                onStart={() => openTrack(t.courseId)}
+                returningHref={`/enrol/welcome-back?course=${t.courseId}`}
+              />
+            ))}
+          </div>
         </div>
       </section>
 

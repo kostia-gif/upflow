@@ -13,7 +13,7 @@ import type { Channel } from "@/lib/whatsapp/script"
 import { cn } from "@/lib/utils"
 
 const beats = [
-  { icon: MessageSquareText, title: "Thanks, and where you're up to", body: "The provider opens the thread: you're in, your place is held, here's what's done and what's left." },
+  { icon: MessageSquareText, title: "Thanks, and where you're up to", body: "The provider opens the thread: your place is saved, here's what's done and what's left." },
   { icon: UserRound, title: "Your advisor joins the same chat", body: "Priya — the person from the enquiry — is added to the thread, not a separate number. Student and advisor share one history." },
   { icon: Bot, title: "AI triages, a human is one tap away", body: "The assistant answers the quick stuff and offers to hand over. Anything it isn't sure of goes straight to Priya." },
   { icon: FileUp, title: "Details and documents in the chat", body: "The assistant confirms name and date of birth, reads an academic transcript and CV straight from a photo, and turns three short questions into a personal statement — each updating the application on the spot." },
