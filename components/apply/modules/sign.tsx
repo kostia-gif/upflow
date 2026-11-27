@@ -1,27 +1,34 @@
 "use client"
 
-import { MessageCircle } from "lucide-react"
 import { useState } from "react"
 import { Checkbox } from "@/components/ui/checkbox"
-import { PrimaryButton, TextLink } from "@/components/apply/primitives"
+import { PrimaryButton, SecondaryButton } from "@/components/apply/primitives"
 import { TextField } from "@/components/apply/text-field"
 import { useApplication } from "@/lib/application/context"
 import { moduleMeta } from "@/lib/config/modules"
 import type { ModuleProps } from "./types"
 
 export function SignModule({ onComplete }: ModuleProps) {
-  const { app, brand, course, modules, dispatch } = useApplication()
+  const { app, brand, course, rep, modules, dispatch } = useApplication()
   const fullName = `${app.firstName ?? ""} ${app.lastName ?? ""}`.trim()
   const [typed, setTyped] = useState("")
   const [agree, setAgree] = useState(false)
+  const [confirmingUpdates, setConfirmingUpdates] = useState(false)
   const campus = course.campuses.find((c) => c.id === app.campusId)
   const intake = course.intakes.find((i) => i.id === app.intakeId)
   const match = typed.trim().toLowerCase() === fullName.toLowerCase() && fullName.length > 0
   const ready = agree && match
 
-  function submit(via: "whatsapp" | "sms") {
-    dispatch({ type: "SET_FIELDS", fields: { channel: via === "whatsapp" ? "whatsapp" : "app", mobileVerified: true } })
-    onComplete("done", { signedBy: typed, at: new Date().toISOString(), continueOn: via })
+  function submit(withUpdates: boolean) {
+    dispatch({
+      type: "SET_FIELDS",
+      fields: { channel: withUpdates ? "whatsapp" : "app", contactConsent: withUpdates },
+    })
+    onComplete("done", {
+      signedBy: typed,
+      at: new Date().toISOString(),
+      continueOn: withUpdates ? "whatsapp" : "none",
+    })
   }
 
   return (
@@ -74,19 +81,32 @@ export function SignModule({ onComplete }: ModuleProps) {
         validate={(v) => (v.trim().toLowerCase() === fullName.toLowerCase() ? null : "Needs to match your name exactly")}
       />
 
-      <div className="flex flex-col gap-2">
-        <PrimaryButton arrow={false} disabled={!ready} onClick={() => submit("whatsapp")}>
-          <MessageCircle className="size-5" aria-hidden /> Submit and continue on WhatsApp
-        </PrimaryButton>
-        <p className="text-pretty text-center text-xs leading-relaxed text-muted-foreground">
-          Opens WhatsApp with a message ready to send. Sending it confirms your number.
-        </p>
-        <div className="flex justify-center">
-          <TextLink onClick={() => ready && submit("sms")} className={ready ? undefined : "pointer-events-none opacity-50"}>
-            No WhatsApp? Text me instead
-          </TextLink>
+      {confirmingUpdates ? (
+        <div role="group" aria-labelledby="updates-check" className="flex flex-col gap-3 rounded-2xl bg-brand-soft p-4">
+          <div className="flex flex-col gap-1">
+            <h2 id="updates-check" className="text-base font-semibold">
+              Sure you don&apos;t want updates on WhatsApp?
+            </h2>
+            <p className="text-pretty text-sm leading-relaxed text-foreground/80">
+              You turned updates off when you started. Once you&apos;ve submitted, WhatsApp is the easiest place to
+              see your offer, send anything we still need, and reach {rep?.name ?? "your advisor"}.
+            </p>
+          </div>
+          <PrimaryButton disabled={!ready} onClick={() => submit(true)}>
+            Turn on updates and submit
+          </PrimaryButton>
+          <SecondaryButton disabled={!ready} onClick={() => submit(false)} className="disabled:opacity-40">
+            Submit without updates
+          </SecondaryButton>
         </div>
-      </div>
+      ) : (
+        <PrimaryButton
+          disabled={!ready}
+          onClick={() => (app.contactConsent ? submit(true) : setConfirmingUpdates(true))}
+        >
+          Submit
+        </PrimaryButton>
+      )}
     </div>
   )
 }

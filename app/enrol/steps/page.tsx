@@ -78,7 +78,7 @@ export default function EnrolStepsHubPage() {
               ? `All done${name}.`
               : progress.done === 0
                 ? enrolAndPay
-                  ? "Four quick things, then you're in."
+                  ? "Four quick things, then pay and enrol."
                   : `Your steps${name}.`
                 : `Nice one${name}. ${progress.total - progress.done} to go.`}
           </Title>

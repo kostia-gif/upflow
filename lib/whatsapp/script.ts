@@ -81,7 +81,7 @@ export function buildScript(ctx: ScriptCtx): Record<string, Scene> {
         {
           kind: "text",
           from: "assistant",
-          text: `Hi ${firstName}, thanks for starting your ${course.shortTitle} application with ${brand.shortName}. You're in — your place is held until ${holdUntil}.`,
+          text: `Hi ${firstName}, thanks for starting your ${course.shortTitle} application with ${brand.shortName}. We've saved your place and we're holding it until ${holdUntil}.`,
         },
         { kind: "progress" },
         {

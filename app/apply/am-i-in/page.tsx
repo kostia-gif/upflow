@@ -103,11 +103,13 @@ export default function AmIInPage() {
               )}
               <div className="flex flex-col gap-2">
                 <p className="text-sm font-semibold">
-                  {hardFail ? "Not this one, not yet." : `You're in. You meet the entry requirements for ${course.shortTitle}.`}
+                  {hardFail
+                    ? "Not this one, not yet."
+                    : `We've saved your place. You meet the entry requirements for ${course.shortTitle}.`}
                 </p>
                 {!hardFail && (
                   <p className="text-sm leading-relaxed text-foreground/80">
-                    We&apos;re holding your place for {course.holdDays} days while you finish the rest.
+                    We&apos;ll hold it for {course.holdDays} days while you complete your application.
                   </p>
                 )}
                 {hardFail?.q.failNote && <p className="text-sm leading-relaxed">{hardFail.q.failNote}</p>}

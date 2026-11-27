@@ -72,8 +72,8 @@ export default function ModulePage() {
           <CalendarClock className="mt-0.5 size-5 shrink-0 text-brand" aria-hidden />
           <div className="flex flex-col gap-1">
             <p className="font-semibold">
-              You&apos;re in{app.firstName?.trim() ? `, ${app.firstName.trim()}` : ""}. Place held
-              {app.holdUntil ? ` until ${formatDayMonth(app.holdUntil)}` : ""}.
+              Your place is saved{app.firstName?.trim() ? `, ${app.firstName.trim()}` : ""}.
+              {app.holdUntil ? ` We're holding it until ${formatDayMonth(app.holdUntil)}.` : ""}
             </p>
             <p className="text-foreground/80">
               Confirmation texted to {app.mobile || "your mobile"}.

@@ -57,8 +57,8 @@ export const moduleMeta: Record<ModuleId, ModuleMeta> = {
     id: "money",
     title: "Paying for it",
     description: {
-      NZ: "You're in and you're verified — here's how people usually pay. Nothing to decide or pay today.",
-      AU: "You're in and you're verified — here's how people usually pay. Nothing to decide or pay today.",
+      NZ: "Your place is saved — here's how people usually pay. Nothing to decide or pay today.",
+      AU: "Your place is saved — here's how people usually pay. Nothing to decide or pay today.",
     },
     minutes: 1.5,
     timeLabel: "2 min",

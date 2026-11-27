@@ -20,7 +20,7 @@ export default function DonePage() {
     (m) => app.modules[m] === "checking" || app.modules[m] === "sent" || app.modules[m] === "later",
   )
   const signed = isComplete(app, "sign")
-  const continueOn = app.moduleData.sign?.continueOn === "sms" ? "sms" : "whatsapp"
+  const handoff = app.moduleData.sign?.continueOn
 
   const items = [
     { icon: CalendarPlus, t: "Orientation", d: `The week before ${intake?.label ?? "you start"}. Invite comes by email and text.` },
@@ -72,7 +72,7 @@ export default function DonePage() {
         </Lede>
       </div>
 
-      {signed && <HandoffThread via={continueOn} />}
+      {signed && handoff !== "none" && <HandoffThread via={handoff === "sms" ? "sms" : "whatsapp"} />}
 
       <StatusTracker current={signed ? "Enrolled" : "Getting ready"} />
 
